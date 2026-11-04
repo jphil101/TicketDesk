@@ -1,0 +1,18 @@
+{
+  "name": "ticket-desk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Low-friction personal ticketing: urgency × impact priority, recurring tasks, cross-device sync.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node dev-server.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
+    "pg": "^8.23.1"
+  }
+}
