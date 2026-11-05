@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "node dev-server.mjs",
-    "test": "node --test"
+    "test": "node --test --test-concurrency=1"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

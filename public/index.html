@@ -91,6 +91,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
 .sync:hover{border-color:var(--line-strong)}
 @media (max-width:600px){.hbtn span{display:none}.hbtn{width:38px;justify-content:center;padding:0}#openMore{display:none}}
 @media (max-width:420px){.brand-name{font-size:19px}.brand{gap:8px}.brand svg{width:26px;height:26px}}
+@media (max-width:400px){.brand-name{font-size:17px}.top-acts{gap:4px}.hbtn{width:36px}}
+@media (max-width:370px){.brand-name{display:none}}
 
 /* Composer */
 .composer{position:relative;background:var(--surface);border-radius:18px;padding:14px 16px 16px;box-shadow:var(--shadow);display:grid;gap:12px;overflow:visible}
@@ -99,9 +101,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
 .comp-head .fl{margin:0}
 .next-id{font:500 11.5px/1 var(--f-mono);color:var(--fg-3)}
 .name-wrap{position:relative}
-#taskName{width:100%;font:500 17px/1.3 var(--f-body);padding:13px 14px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2);color:var(--fg);appearance:none}
-#taskName::placeholder{color:var(--fg-3)}
-#taskName:focus{outline:2px solid var(--ink);outline-offset:-1px;background:var(--surface)}
+#taskName,.big-inp{width:100%;font:500 17px/1.3 var(--f-body);padding:13px 14px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2);color:var(--fg);appearance:none}
+#taskName::placeholder,.big-inp::placeholder{color:var(--fg-3)}
+#taskName:focus,.big-inp:focus{outline:2px solid var(--ink);outline-offset:-1px;background:var(--surface)}
 .suggest{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:30;margin:0;padding:5px;list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg)}
 .suggest-label{font:500 10.5px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);padding:7px 10px 5px}
 .suggest li[role="option"]{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--fg-2)}
@@ -395,6 +397,27 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 .moved-note{margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;color:var(--fg-2);padding:10px 12px;border-radius:12px;border:1px dashed var(--line-strong);background:color-mix(in srgb,var(--surface) 60%,transparent)}
 .moved-note svg{flex:none;color:var(--p2)}
 
+/* Guests */
+.hbtn{position:relative}
+.badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--p1);color:var(--on-solid);font:700 10.5px/18px var(--f-mono);text-align:center;box-shadow:0 0 0 2px var(--bg)}
+.inbox-sec .sec-h::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--p3);align-self:center}
+.req{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;padding:12px 12px 12px 15px;border-radius:13px;background:var(--surface);border:1.5px dashed color-mix(in srgb,var(--pc) 50%,var(--line-strong))}
+.req-main{display:grid;gap:3px;flex:1;min-width:180px}
+.req .pbadge{margin:0}
+.req-acts{display:flex;gap:6px;margin-left:auto}
+.mini.primary{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.opt-group{border:0;margin:0;padding:0;display:grid;gap:8px;min-width:0}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.opt input{margin:3px 0 0;accent-color:var(--ink);flex:none}
+.opt span{display:grid;gap:2px}
+.opt small{color:var(--fg-2);font-size:13px;line-height:1.35}
+.opt:has(input:checked){border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.sub-h{margin:4px 0 0;font:600 11.5px/1 var(--f-mono);color:var(--fg-3);text-transform:uppercase;letter-spacing:.06em}
+.task.ro .task-main{cursor:default}
+.task.ro .task-inner{touch-action:auto}
+#guestBody{display:grid;gap:18px;min-width:0}
+.guest-hero{gap:10px}
+
 /* Sync panel */
 .sync-panel{display:grid;gap:14px}
 .lead{margin:0;display:flex;gap:10px;align-items:baseline;font-size:15px;color:var(--fg)}
@@ -431,6 +454,7 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
       <button type="button" class="sync" id="sync" data-state="loading" aria-label="Sync status. Open sync and backup"><i></i><span id="syncText">Loading</span></button>
     </div>
     <div class="top-acts">
+      <button type="button" class="hbtn" id="openGuests" aria-label="Guest access"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6M16 11h6"/></svg><span>Guests</span><b class="badge" id="reqBadge" hidden></b></button>
       <button type="button" class="hbtn" id="openRecur" aria-label="Recurring tasks"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg><span>Recurring</span></button>
       <button type="button" class="hbtn" id="openMore" aria-label="Sync and backup"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.2a4.4 4.4 0 0 1-.8 8.8H7z"/><path d="M12 11v5M9.5 13.5L12 11l2.5 2.5"/></svg><span>Sync &amp; backup</span></button>
     </div>
@@ -505,6 +529,21 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
       <button type="submit" class="btn-primary">Save</button>
     </div>
   </form>
+</dialog>
+
+<div class="app" id="guestApp" hidden>
+  <header class="top"><div class="brand"><p class="brand-name">Ticket Desk</p><span class="sync" id="gPill" data-state="loading"><i></i><span id="gPillText">Guest</span></span></div></header>
+  <main id="guestBody"></main>
+</div>
+
+<dialog id="guestDlg" class="sheet-dlg" aria-labelledby="guestTitle">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2 id="guestTitle">Guest access</h2>
+      <button type="button" class="icon-btn" id="guestClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div id="guestPanel" class="sync-panel"></div>
+  </div>
 </dialog>
 
 <dialog id="moreDlg" class="sheet-dlg" aria-labelledby="moreTitle">
@@ -587,10 +626,10 @@ const greeting = () => { const h = new Date().getHours(); return h < 5 ? 'Workin
 
 /* ---------- state ---------- */
 const S = {
-  tasks: new Map(), rules: new Map(),
+  tasks: new Map(), rules: new Map(), requests: new Map(),
   view: 'day', anchor: todayKey(), today: todayKey(),
   loaded: false, confirmed: false,
-  add: {u: 2, i: 2}, edit: {id: null, u: 2, i: 2},
+  add: {u: 2, i: 2}, edit: {id: null, u: 2, i: 2}, gForm: {u: 2, i: 2},
   rf: null,
   doneF: {q: '', range: '30', prios: new Set()},
   hist: null,
@@ -599,6 +638,8 @@ const S = {
 const validTask = t => t && typeof t.name === 'string' && t.name.trim() && [1,2,3].includes(t.urgency) && [1,2,3].includes(t.impact) && /^\d{4}-\d{2}-\d{2}$/.test(t.day || '');
 const FREQS = ['daily', 'weekdays', 'weekly', 'biweekly', 'monthly'];
 const validRule = r => r && typeof r.name === 'string' && r.name.trim() && [1,2,3].includes(r.urgency) && [1,2,3].includes(r.impact) && FREQS.includes(r.freq) && /^\d{4}-\d{2}-\d{2}$/.test(r.start || '');
+const validRequest = r => r && typeof r.name === 'string' && r.name.trim() && [1,2,3].includes(r.urgency) && [1,2,3].includes(r.impact);
+const VALID = {tasks: validTask, rules: validRule, requests: validRequest};
 
 /* ---------- recurrence ---------- */
 function isDue(r, k) {
@@ -667,8 +708,8 @@ function generate() {
 }
 
 /* ---------- storage: this device first, then /api/sync when a sync key is set ---------- */
-const K = {tasks: 'td.tasks', rules: 'td.rules', outbox: 'td.outbox', cursor: 'td.cursor', key: 'td.key', lastOk: 'td.lastSync'};
-const lsList = kind => { const a = lsGet(K[kind], []); return Array.isArray(a) ? a.filter(kind === 'tasks' ? validTask : validRule) : []; };
+const K = {tasks: 'td.tasks', rules: 'td.rules', requests: 'td.requests', outbox: 'td.outbox', cursor: 'td.cursor', key: 'td.key', lastOk: 'td.lastSync'};
+const lsList = kind => { const a = lsGet(K[kind], []); return Array.isArray(a) ? a.filter(VALID[kind]) : []; };
 const KEY_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 function normalizeKey(raw) {
   let s = String(raw == null ? '' : raw).toUpperCase().replace(/[^0-9A-Z]/g, '');
@@ -688,6 +729,7 @@ const store = {
   init() {
     S.tasks = new Map(lsList('tasks').map(t => [t.id, t]));
     S.rules = new Map(lsList('rules').map(r => [r.id, r]));
+    S.requests = new Map(lsList('requests').map(r => [r.id, r]));
     this.key = normalizeKey(lsGet(K.key, null));
     this.cursor = Number(lsGet(K.cursor, 0)) || 0;
     const ob = lsGet(K.outbox, {}); this.outbox = ob && typeof ob === 'object' && !Array.isArray(ob) ? ob : {};
@@ -774,11 +816,11 @@ const store = {
       const cur = map.get(r.id);
       if (r.deleted) { if (cur && (cur.updatedAt || 0) <= r.updatedAt) { map.delete(r.id); touched = true; } continue; }
       const v = {...r.body, id: r.id, updatedAt: r.updatedAt};
-      if (!(r.kind === 'tasks' ? validTask(v) : validRule(v))) continue;
+      if (!VALID[r.kind](v)) continue;
       if (!cur || (cur.updatedAt || 0) < r.updatedAt) { map.set(r.id, v); touched = true; }
     }
     this.cursor = data.cursor; lsSet(K.cursor, this.cursor); lsSet(K.outbox, this.outbox);
-    if (touched) { this.persist('tasks'); this.persist('rules'); }
+    if (touched) { this.persist('tasks'); this.persist('rules'); this.persist('requests'); }
     this.inflight = false; this.backoff = 0; this.error = ''; this.state = 'synced';
     this.lastOk = Date.now(); lsSet(K.lastOk, this.lastOk);
     const first = !S.confirmed; S.confirmed = true;
@@ -798,7 +840,7 @@ const store = {
     this.key = key; lsSet(K.key, key);
     this.cursor = 0; lsSet(K.cursor, 0);
     this.outbox = {};
-    for (const kind of ['tasks', 'rules']) for (const o of S[kind].values()) this.outbox[kind + ':' + o.id] = {kind, id: o.id, body: o, deleted: false, updatedAt: o.updatedAt || 1};
+    for (const kind of ['tasks', 'rules', 'requests']) for (const o of S[kind].values()) this.outbox[kind + ':' + o.id] = {kind, id: o.id, body: o, deleted: false, updatedAt: o.updatedAt || 1};
     lsSet(K.outbox, this.outbox);
     S.confirmed = false; this.state = 'syncing'; this.error = ''; this.backoff = 0;
     renderSync(); this.sync();
@@ -806,7 +848,7 @@ const store = {
   unlink() {
     this.key = null; this.cursor = 0; this.outbox = {}; this.state = 'local'; this.error = '';
     try { for (const k of Object.values(K)) localStorage.removeItem(k); } catch {}
-    S.tasks = new Map(); S.rules = new Map(); S.confirmed = true;
+    S.tasks = new Map(); S.rules = new Map(); S.requests = new Map(); S.confirmed = true;
     changed(); renderSync();
   },
 };
@@ -932,7 +974,7 @@ function dayHTML() {
   else if (!openAll.length) sentence = `All <b>${done.length}</b> done. Nicely cleared.`;
   else sentence = `<b>${openAll.length}</b> open${crit ? `, <b>${crit}</b> high priority or above` : ''} · <b>${done.length}</b> done`;
 
-  let body = '';
+  let body = isToday ? inboxHTML() : '';
   if (carried.length) body += `<section class="sec carried-sec"><h3 class="sec-h">Carried over <span class="n">${carried.length}</span><span class="hint">unfinished from earlier days, moved here automatically</span></h3>${list(carried, {carried: true})}</section>`;
   if (movedOn) body += `<p class="moved-note">${ICON.right}<span>${movedOn} unfinished task${movedOn > 1 ? 's' : ''} from this day ${movedOn > 1 ? 'were' : 'was'} carried over to today.</span><button type="button" class="link-btn" data-goto="${today}">Go to today</button></p>`;
   body += `<section class="sec"><h3 class="sec-h">${carried.length ? 'New for this day' : 'Open'} <span class="n">${fresh.length}</span></h3>${fresh.length ? list(fresh) : emptyDay(k, isToday, carried.length, done.length)}</section>`;
@@ -1133,7 +1175,7 @@ $('#openRecur').addEventListener('click', () => { recurBox.open = true; recurBox
 /* ---------- render ---------- */
 const view = $('#view');
 let shownView = null;
-function changed() { S.hist = null; render(); renderRules(); scheduleGen(); }
+function changed() { S.hist = null; render(); renderRules(); renderGuestBadge(); if (guestDlg.open) renderGuestPanel(); scheduleGen(); }
 function render() {
   updateTabs(); updateAddingTo();
   $('#nextId').textContent = S.loaded ? `Next: ${tidN(nextSeq())}` : '';
@@ -1163,12 +1205,12 @@ const nameIn = $('#taskName'), sug = $('#suggest');
 const ADD_BTN = '<button type="submit" class="btn-primary" id="addBtn" disabled>Add ticket</button>';
 function renderAddControls() { $('#addControls').innerHTML = controlsHTML('add', S.add.u, S.add.i, ADD_BTN); syncAddBtn(); }
 function syncAddBtn() { const b = $('#addBtn'); if (b) b.disabled = !nameIn.value.trim(); }
-const SCOPES = {add: () => S.add, edit: () => S.edit, rule: () => S.rf};
-const HOSTS = {add: '#addControls', edit: '#editControls', rule: '#ruleControls'};
+const SCOPES = {add: () => S.add, edit: () => S.edit, rule: () => S.rf, guest: () => S.gForm};
+const HOSTS = {add: '#addControls', edit: '#editControls', rule: '#ruleControls', guest: '#guestControls'};
 function refreshReadout(scope) { const st = SCOPES[scope](); const host = $(HOSTS[scope]).querySelector('.readout'); host.outerHTML = matrixHTML(st.u, st.i, scope); }
 function bindControls(container) {
   container.addEventListener('change', e => {
-    const m = e.target.name && e.target.name.match(/^(add|edit|rule)-(u|i)$/); if (!m) return;
+    const m = e.target.name && e.target.name.match(/^(add|edit|rule|guest)-(u|i)$/); if (!m) return;
     SCOPES[m[1]]()[m[2]] = Number(e.target.value);
     refreshReadout(m[1]);
   });
@@ -1459,6 +1501,258 @@ $('#impFile').addEventListener('change', async e => {
   } catch { toast('That file isn’t a Ticket Desk backup.'); }
 });
 
+/* ---------- guest access: owner side ---------- */
+const MODE_NAME = {submit: 'Drop-off', view: 'Drop-off + view'};
+const MODE_DESC = {
+  submit: 'Guests can send you tickets. They can’t see anything on your desk.',
+  view: 'Guests can send you tickets and see your open tickets, read-only. Notes stay private.',
+};
+const TTLS = [[60, '1 hour'], [240, '4 hours'], [1440, '1 day'], [10080, '1 week']];
+const agoShort = ms => { const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : fmtShort(keyOf(new Date(ms))); };
+function timeLeft(iso) {
+  const m = Math.max(0, Math.round((new Date(iso) - Date.now()) / 60000));
+  if (m < 1) return 'under a minute';
+  if (m < 60) return `${m} min`;
+  if (m < 1440) return `${Math.floor(m / 60)} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}`;
+  const h = Math.round((m % 1440) / 60);
+  return `${Math.floor(m / 1440)} d${h ? ' ' + h + ' h' : ''}`;
+}
+async function guestApi(body, auth) {
+  let res, data;
+  try {
+    res = await fetch('/api/guest', {method: 'POST', cache: 'no-store', headers: {'Content-Type': 'application/json', 'Authorization': auth || 'Bearer ' + store.key}, body: JSON.stringify(body)});
+    data = await res.json().catch(() => null);
+  } catch { throw Object.assign(new Error('Couldn’t reach the desk. Check your connection and try again.'), {status: 0}); }
+  if (!res.ok) throw Object.assign(new Error((data && data.error) || 'The server didn’t respond as expected.'), {status: res.status, code: data && data.code});
+  return data;
+}
+
+/* inbox: guest requests arrive through sync as kind "requests" */
+const sortedRequests = () => [...S.requests.values()].sort((a, b) => (a.submittedAt || 0) - (b.submittedAt || 0));
+function reqCardHTML(r, actions) {
+  const p = prio(r.urgency, r.impact);
+  return `<li class="req p${p}"${actions ? ` data-req="${esc(r.id)}"` : ''}><div class="req-main"><span class="task-name">${esc(r.name)}</span><span class="task-meta">${esc(actions ? (r.from ? 'From ' + r.from : 'From a guest') + ' · ' + agoShort(r.submittedAt || r.updatedAt) + ' · ' : 'Sent ' + agoShort(r.at) + ' · ')}${LEVEL_S[r.urgency]} urgency · ${LEVEL_S[r.impact]} impact</span></div><span class="pbadge">P${p}</span>${actions ? '<div class="req-acts"><button type="button" class="mini" data-req-act="decline">Decline</button><button type="button" class="mini primary" data-req-act="accept">Add to today</button></div>' : ''}</li>`;
+}
+function inboxHTML() {
+  const reqs = sortedRequests();
+  if (!reqs.length) return '';
+  return `<section class="sec inbox-sec"><h3 class="sec-h">Guest requests <span class="n">${reqs.length}</span><span class="hint">add the ones that belong on your list</span></h3><ul class="tickets">${reqs.map(r => reqCardHTML(r, true)).join('')}</ul></section>`;
+}
+function acceptRequest(id) {
+  const r = S.requests.get(id); if (!r) return;
+  const now = Date.now();
+  const t = {id: 't' + newId(), seq: nextSeq(), name: r.name, urgency: r.urgency, impact: r.impact, day: todayKey(), done: false, doneAt: null,
+    notes: r.from ? `Requested by ${r.from}` : 'Requested by a guest', fromGuest: true, createdAt: now, updatedAt: now};
+  S.fresh = {id: t.id, kind: 'add', at: now};
+  store.save('tasks', t); store.remove('requests', id);
+  toast(`Added ${tid(t)} from a guest request`, () => { store.remove('tasks', t.id); store.save('requests', r); });
+}
+function declineRequest(id) {
+  const r = S.requests.get(id); if (!r) return;
+  store.remove('requests', id);
+  toast('Request declined', () => store.save('requests', r));
+}
+function renderGuestBadge() {
+  const n = S.requests.size, b = $('#reqBadge');
+  b.hidden = !n; b.textContent = n > 9 ? '9+' : String(n);
+  $('#openGuests').setAttribute('aria-label', n ? `Guest access, ${n} request${n > 1 ? 's' : ''} waiting` : 'Guest access');
+}
+
+/* guest link sheet */
+const guestDlg = $('#guestDlg');
+const GS = {loading: false, active: null, error: '', mode: 'submit', ttl: 60, replacing: false, busy: false};
+const myLink = () => lsGet('td.guestLink', null);
+const guestLinkUrl = token => `${location.origin}${location.pathname}#guest=${token}`;
+async function refreshGuestStatus() {
+  if (!store.key) return renderGuestPanel();
+  GS.loading = !GS.active; GS.error = ''; renderGuestPanel();
+  try { const d = await guestApi({action: 'status'}); GS.active = d.active; }
+  catch (e) { GS.error = e.message; }
+  GS.loading = false; renderGuestPanel();
+}
+function openGuests() { GS.replacing = false; $('#guestPanel').dataset.sig = ''; if (!guestDlg.open) guestDlg.showModal(); refreshGuestStatus(); }
+function renderGuestPanel() {
+  const p = $('#guestPanel');
+  const n = S.requests.size;
+  const waiting = n ? `<p class="note">${n} request${n > 1 ? 's are' : ' is'} waiting for you at the top of today’s Day view.</p>` : '';
+  let html;
+  if (!store.key) {
+    html = `<p class="lead"><i class="dot" data-state="local"></i><span>Guest links need sync turned on, so guests’ tickets can reach you.</span></p><div class="btn-row"><button type="button" class="btn-primary" data-g="sync">Turn on sync</button></div>`;
+  } else if (GS.loading) {
+    html = `<p class="lead"><i class="dot" data-state="saving"></i>Checking guest access…</p>`;
+  } else if (GS.active && !GS.replacing) {
+    const a = GS.active, mine = myLink(), known = !!(mine && mine.token && mine.expiresAt === a.expiresAt);
+    const until = new Date(a.expiresAt).toLocaleString(undefined, {weekday: 'short', hour: 'numeric', minute: '2-digit'});
+    html = `<p class="lead"><i class="dot" data-state="sync"></i><span>Guest link is live: <b>${MODE_NAME[a.mode]}</b>. Ends in ${timeLeft(a.expiresAt)} (${esc(until)}).</span></p>
+      ${known
+        ? `<div class="qr-row"><div class="qr" id="gqr" role="img" aria-label="QR code for the guest link"></div><div class="qr-text"><p>${MODE_DESC[a.mode]}</p><span class="link-code" id="gLinkText">${esc(guestLinkUrl(mine.token))}</span><div class="btn-row"><button type="button" class="btn-ghost" data-g="copy">Copy link</button></div></div></div>`
+        : `<p class="note">This link was made on another device, so its code is shown there. You can still replace it or stop it here.</p>`}
+      <p class="note muted">${a.submissions} ticket${a.submissions === 1 ? '' : 's'} sent through this link so far.</p>
+      ${waiting}
+      <div class="btn-row"><button type="button" class="btn-ghost" data-g="replace">New link</button><button type="button" class="btn-ghost danger" data-g="stop">Stop sharing now</button></div>`;
+  } else {
+    html = `${GS.error ? `<p class="lead"><i class="dot" data-state="error"></i><span>${esc(GS.error)}</span></p>` : `<p class="lead"><i class="dot" data-state="local"></i><span>${GS.replacing ? 'Make a new link. The current one stops working straight away.' : 'Let someone send you tickets for a limited time.'}</span></p>`}
+      <fieldset class="opt-group"><legend class="fl">What guests can do</legend>
+        ${['submit', 'view'].map(m => `<label class="opt"><input type="radio" name="g-mode" value="${m}"${GS.mode === m ? ' checked' : ''}><span><b>${MODE_NAME[m]}</b><small>${MODE_DESC[m]}</small></span></label>`).join('')}
+      </fieldset>
+      <fieldset class="opt-group"><legend class="fl">Link works for</legend><div class="filter-row">${TTLS.map(([v, l]) => `<button type="button" class="fchip" data-ttl="${v}" aria-pressed="${GS.ttl === v}">${l}</button>`).join('')}</div></fieldset>
+      ${waiting}
+      <div class="btn-row"><button type="button" class="btn-primary" data-g="create"${GS.busy ? ' disabled' : ''}>${GS.busy ? 'Creating…' : 'Create guest link'}</button>${GS.replacing ? '<button type="button" class="btn-ghost" data-g="cancel">Cancel</button>' : ''}</div>
+      <p class="note muted">Guests never see your sync key. Their tickets wait for your review. The link stops working when its time runs out, when you stop sharing, or when you make a new one.</p>`;
+  }
+  if (p.dataset.sig === html) return;
+  p.innerHTML = html; p.dataset.sig = html;
+  const mine = myLink();
+  if ($('#gqr') && mine) drawQR($('#gqr'), guestLinkUrl(mine.token));
+}
+async function copyGuestLink(url) {
+  try { await navigator.clipboard.writeText(url); toast('Link copied'); }
+  catch { const el = $('#gLinkText'); if (el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } toast('Select the link and copy it.'); }
+}
+$('#guestPanel').addEventListener('change', e => { if (e.target.name === 'g-mode') GS.mode = e.target.value; });
+$('#guestPanel').addEventListener('click', async e => {
+  const t = e.target.closest('[data-ttl]');
+  if (t) { GS.ttl = Number(t.dataset.ttl); $('#guestPanel').querySelectorAll('[data-ttl]').forEach(b => b.setAttribute('aria-pressed', String(b === t))); return; }
+  const b = e.target.closest('[data-g]'); if (!b) return;
+  const a = b.dataset.g;
+  if (a === 'sync') { guestDlg.close(); openMore(); }
+  else if (a === 'copy') { const mine = myLink(); if (mine) copyGuestLink(guestLinkUrl(mine.token)); }
+  else if (a === 'replace') { GS.replacing = true; GS.mode = GS.active ? GS.active.mode : GS.mode; renderGuestPanel(); }
+  else if (a === 'cancel') { GS.replacing = false; renderGuestPanel(); }
+  else if (a === 'stop') {
+    try { await guestApi({action: 'revoke'}); lsSet('td.guestLink', null); GS.active = null; toast('Guest link stopped. It no longer works.'); }
+    catch (err) { toast(err.message); }
+    renderGuestPanel();
+  } else if (a === 'create') {
+    GS.busy = true; renderGuestPanel();
+    try {
+      const d = await guestApi({action: 'create', mode: GS.mode, ttlMinutes: GS.ttl});
+      lsSet('td.guestLink', {token: d.token, expiresAt: d.expiresAt});
+      GS.active = {mode: d.mode, expiresAt: d.expiresAt, submissions: 0}; GS.replacing = false; GS.error = '';
+      toast('Guest link ready. Share the code or the link.');
+    } catch (err) { GS.error = err.message; }
+    GS.busy = false; renderGuestPanel();
+  }
+});
+$('#openGuests').addEventListener('click', openGuests);
+$('#guestClose').addEventListener('click', () => guestDlg.close());
+guestDlg.addEventListener('click', e => { if (e.target === guestDlg) guestDlg.close(); });
+setInterval(() => {
+  if (!guestDlg.open) return;
+  if (GS.active && new Date(GS.active.expiresAt) <= Date.now()) GS.active = null;
+  renderGuestPanel();
+}, 30000);
+
+/* ---------- guest mode: this page was opened from a guest link ---------- */
+let GUEST = null;
+const GUEST_SEND_BTN = '<button type="submit" class="btn-primary" id="gSend" disabled>Send ticket</button>';
+function bootGuest(token) {
+  GUEST = {token, mode: null, expiresAt: null, tasks: [], state: 'loading', error: '', busy: false, lastActive: Date.now(),
+    sent: (lsGet('td.guestSent.' + token.slice(0, 10), []) || []).filter(x => x && typeof x.name === 'string')};
+  S.gForm = {u: 2, i: 2};
+  document.title = 'Send a ticket · Ticket Desk';
+  $('.app').hidden = true; $('#guestApp').hidden = false;
+  $('#guestApp .brand').prepend($('.app .brand svg').cloneNode(true));
+  renderGuest(); guestInfo();
+  setInterval(guestTick, 30000);
+  const wake = () => { GUEST.lastActive = Date.now(); guestInfo(); };
+  addEventListener('focus', wake);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
+  for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => { GUEST.lastActive = Date.now(); }, {passive: true});
+}
+function guestTick() {
+  if (!GUEST || GUEST.state !== 'ok') return;
+  if (new Date(GUEST.expiresAt) <= Date.now()) { GUEST.state = 'expired'; return renderGuest(); }
+  renderGuestPill();
+  // board refresh: every minute while someone is looking, never while idle (lets the database sleep)
+  if (GUEST.mode === 'view' && !document.hidden && Date.now() - GUEST.lastActive < 600000 && (GUEST.ticks = (GUEST.ticks || 0) + 1) % 2 === 0) guestInfo();
+}
+async function guestInfo() {
+  if (!GUEST || GUEST.state === 'expired') return;
+  try {
+    const d = await guestApi({action: 'info'}, 'Guest ' + GUEST.token);
+    const fresh = GUEST.state !== 'ok' || GUEST.mode !== d.mode;
+    Object.assign(GUEST, {mode: d.mode, expiresAt: d.expiresAt, tasks: Array.isArray(d.tasks) ? d.tasks.filter(validTask) : [], state: 'ok'});
+    if (fresh) renderGuest(); else { renderGuestBoard(); renderGuestPill(); }
+  } catch (e) {
+    if (e.status === 410) { GUEST.state = 'expired'; renderGuest(); }
+    else if (GUEST.state === 'loading') { GUEST.state = 'error'; GUEST.error = e.status === 503 ? 'This desk isn’t set up for guests yet.' : e.message; renderGuest(); }
+  }
+}
+function renderGuestPill() {
+  const ok = GUEST.state === 'ok';
+  $('#gPill').dataset.state = ok ? 'sync' : GUEST.state === 'loading' ? 'loading' : 'error';
+  $('#gPillText').textContent = ok ? `Guest · ${timeLeft(GUEST.expiresAt)} left` : GUEST.state === 'loading' ? 'Guest' : 'No access';
+}
+function renderGuest() {
+  const b = $('#guestBody');
+  renderGuestPill();
+  if (GUEST.state === 'loading') { b.innerHTML = '<div class="skel"></div><div class="skel"></div>'; return; }
+  if (GUEST.state !== 'ok') {
+    b.innerHTML = GUEST.state === 'expired'
+      ? emptyHTML('This guest link has ended', 'It ran out of time, or the owner turned it off. Ask them for a new link.')
+      : emptyHTML('Can’t open this desk', esc(GUEST.error));
+    return;
+  }
+  b.innerHTML = `<div class="hero guest-hero"><h2 class="vtitle"><span class="eyebrow">Guest access · ${MODE_NAME[GUEST.mode]}</span><span class="big">Send a ticket</span></h2><p class="note">The owner of this desk reviews every ticket before it goes on their list.</p></div>
+    <form class="composer" id="guestForm" autocomplete="off">
+      <div class="comp-head"><label for="gTask" class="fl">What needs doing?</label></div>
+      <input id="gTask" class="big-inp" type="text" maxlength="200" placeholder="Describe the task" enterkeyhint="send">
+      <div class="field"><label class="fl" for="gFrom">Your name (optional)</label><input class="inp" id="gFrom" type="text" maxlength="60" placeholder="So they know who it’s from" value="${esc(lsGet('td.guestFrom', '') || '')}"></div>
+      <div class="controls" id="guestControls">${controlsHTML('guest', S.gForm.u, S.gForm.i, GUEST_SEND_BTN)}</div>
+    </form>
+    <section class="sec" id="gSent"></section>
+    ${GUEST.mode === 'view' ? '<section class="sec" id="gBoard"></section>' : ''}`;
+  renderGuestSent(); renderGuestBoard();
+}
+function renderGuestSent() {
+  const el = $('#gSent'); if (!el) return;
+  const s = GUEST.sent;
+  el.innerHTML = s.length ? `<h3 class="sec-h">Sent from this device <span class="n">${s.length}</span><span class="hint">waiting for the owner’s review</span></h3><ul class="tickets">${s.slice().reverse().map(x => reqCardHTML(x, false)).join('')}</ul>` : '';
+}
+function roTicketHTML(t) {
+  const p = prioOf(t), today = todayKey();
+  const meta = [`${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact`];
+  if (t.day > today) meta.push(`for ${fmtShort(t.day)}`);
+  else if (t.carriedFrom || t.day < today) meta.push(`carried over from ${fmtShort(t.carriedFrom || t.day)}`);
+  if (t.recurring) meta.push('recurring');
+  return `<li class="task ro p${p}"><div class="task-inner"><div class="stub"><span class="tid">${tidN(t.seq)}</span></div><div class="task-main"><span class="task-name">${esc(t.name)}</span><span class="task-meta">${esc(meta.join(' · '))}</span></div><span class="pbadge">P${p}</span></div></li>`;
+}
+function renderGuestBoard() {
+  const el = $('#gBoard'); if (!el) return;
+  const today = todayKey(), ts = GUEST.tasks;
+  const now = ts.filter(t => t.day <= today).sort(byPrio);
+  const later = ts.filter(t => t.day > today).sort((a, b) => a.day.localeCompare(b.day) || byPrio(a, b));
+  el.innerHTML = `<h3 class="sec-h">Their open tickets <span class="n">${ts.length}</span><span class="hint">read-only</span></h3>` + (ts.length
+    ? (now.length ? `<h4 class="sub-h">On the desk now</h4><ul class="tickets">${now.map(roTicketHTML).join('')}</ul>` : '') +
+      (later.length ? `<h4 class="sub-h">Coming up</h4><ul class="tickets">${later.map(roTicketHTML).join('')}</ul>` : '')
+    : '<p class="note muted">No open tickets right now.</p>');
+}
+$('#guestBody').addEventListener('input', e => { if (e.target.id === 'gTask') $('#gSend').disabled = !e.target.value.trim(); });
+$('#guestBody').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!GUEST || GUEST.busy) return;
+  const name = $('#gTask').value.trim().replace(/\s+/g, ' ');
+  if (!name) { $('#gTask').focus(); return; }
+  const from = $('#gFrom').value.trim().slice(0, 60);
+  lsSet('td.guestFrom', from);
+  GUEST.busy = true;
+  const btn = $('#gSend'); btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    await guestApi({action: 'submit', name, urgency: S.gForm.u, impact: S.gForm.i, from}, 'Guest ' + GUEST.token);
+    GUEST.sent.push({name, urgency: S.gForm.u, impact: S.gForm.i, at: Date.now()});
+    lsSet('td.guestSent.' + GUEST.token.slice(0, 10), GUEST.sent.slice(-30));
+    $('#gTask').value = ''; S.gForm = {u: 2, i: 2};
+    $('#guestControls').innerHTML = controlsHTML('guest', 2, 2, GUEST_SEND_BTN);
+    renderGuestSent(); toast('Sent. The owner will review it.'); $('#gTask').focus();
+  } catch (err) {
+    if (err.status === 410) { GUEST.state = 'expired'; renderGuest(); }
+    else { toast(err.message); btn.disabled = false; btn.textContent = 'Send ticket'; }
+  }
+  GUEST.busy = false;
+});
+bindControls($('#guestBody'));
+
 /* ---------- navigation ---------- */
 function setView(v) {
   if (!VIEWS.includes(v)) v = 'day';
@@ -1473,14 +1767,15 @@ function shift(dir) {
   else return;
   render();
 }
-window.addEventListener('hashchange', () => { if (checkJoinHash()) return; const h = location.hash.slice(1); if (VIEWS.includes(h) && h !== S.view) { S.view = h; render(); } });
+window.addEventListener('hashchange', () => { if (GUEST || /^#guest=/.test(location.hash)) { location.reload(); return; } if (checkJoinHash()) return; const h = location.hash.slice(1); if (VIEWS.includes(h) && h !== S.view) { S.view = h; render(); } });
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
 
 view.addEventListener('click', e => {
   if (suppressClick) { e.preventDefault(); e.stopPropagation(); return; }
-  const el = e.target.closest('[data-act],[data-nav],[data-goto],[data-range],[data-prio],[data-clear-filters]');
+  const el = e.target.closest('[data-act],[data-req-act],[data-nav],[data-goto],[data-range],[data-prio],[data-clear-filters]');
   if (!el) return;
   const id = el.closest('[data-id]')?.dataset.id;
+  if (el.dataset.reqAct) { const rid = el.closest('[data-req]').dataset.req; return el.dataset.reqAct === 'accept' ? acceptRequest(rid) : declineRequest(rid); }
   if (el.dataset.act === 'toggle') return toggleDone(id);
   if (el.dataset.act === 'edit') return openEdit(id);
   if (el.dataset.act === 'del') return deleteTask(id);
@@ -1551,7 +1846,7 @@ view.addEventListener('pointercancel', endSwipe);
 
 /* keyboard */
 document.addEventListener('keydown', e => {
-  if (e.metaKey || e.ctrlKey || e.altKey || dlg.open || more.open) return;
+  if (GUEST || e.metaKey || e.ctrlKey || e.altKey || dlg.open || more.open || guestDlg.open) return;
   const tag = (e.target.tagName || '').toLowerCase();
   if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
   const k = e.key;
@@ -1571,12 +1866,17 @@ setInterval(checkDay, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDay(); });
 
 /* ---------- boot ---------- */
-{ const h = location.hash.slice(1); if (VIEWS.includes(h)) S.view = h; }
-renderAddControls();
-S.rf = newRuleForm(); renderRuleForm(); renderRules();
-render();
-store.init();
-checkJoinHash();
+const guestHash = /^#guest=([A-Za-z0-9_-]{32,64})$/.exec(location.hash);
+if (guestHash) {
+  bootGuest(guestHash[1]);            // someone else's guest link: no access to this browser's own desk
+} else {
+  { const h = location.hash.slice(1); if (VIEWS.includes(h)) S.view = h; }
+  renderAddControls();
+  S.rf = newRuleForm(); renderRuleForm(); renderRules();
+  render();
+  store.init();
+  checkJoinHash();
+}
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
 }

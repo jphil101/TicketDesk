@@ -5,6 +5,7 @@ A low-friction personal ticketing app. Type what needs doing, tap **Urgency** an
 - **Day** (main view), **Fortnight** and **Month** breakdowns, plus a **Done** section with search, date range and priority filters
 - **Suggestions** from your past task names while you type. They are only suggestions and are never typed in for you.
 - **Carry over:** at the start of each day, unticked tasks from earlier days move to today. They appear in their own *Carried over* section showing where they came from and how many days they've been carried. Past days note what moved on.
+- **Guest links:** share a QR code or link that lets someone send you tickets (*Drop-off*), or send tickets and see your open tickets read-only (*Drop-off + view*). You choose how long it works (1 hour to 1 week). You review every guest ticket before it goes on your list.
 - **Recurring tasks** (daily, weekdays, weekly, every 2 weeks, monthly) are added to your day automatically. If last time's copy is still open it moves forward instead of piling up.
 - Edit by tapping a ticket. On touch screens, swipe right to complete and left to delete. Every action has Undo.
 - **Works offline** and installs to the home screen (iOS, Android, desktop) as a PWA
@@ -34,6 +35,26 @@ A low-friction personal ticketing app. Type what needs doing, tap **Urgency** an
 - The server never stores the key. It stores only an HMAC of it, so a database leak can't be used to sign in.
 - **Anyone with the key can read and change your tasks**, so treat it like a password. If you lose every device *and* the key, the data can't be recovered. Use **Export backup** now and then.
 - **Unlink this device** removes the local copy. Your tasks stay on the server and come back when you link again.
+
+## Guest links
+
+Tap **Guests**, choose what guests can do and how long the link works, then share the QR code or link. Sync must be on.
+
+| Access | Guests can |
+|---|---|
+| **Drop-off** | send tickets (task + urgency + impact, optional name). Nothing else. |
+| **Drop-off + view** | also see your open tickets, read-only. Notes, ticket IDs and finished work stay private. |
+
+- Guest tickets appear under **Guest requests** at the top of today's Day view on every device you've linked, with a count on the **Guests** button. **Add to today** keeps the guest's priority and notes who asked. **Decline** removes it. Both can be undone.
+- The link is a random token in the URL fragment. The server stores only its SHA-256 hash, and guests never see your sync key.
+- A link stops working when its time runs out (1 hour, 4 hours, 1 day or 1 week; default 1 hour), when you tap **Stop sharing now**, or when you make a **New link**. Only one link is live at a time, so nobody keeps permanent access.
+- Limits: 50 unreviewed requests per desk and 200 tickets per link. A viewing guest's board refreshes every minute while they're active, and stops when they're idle, so the database can still sleep.
+
+```
+POST /api/guest
+  owner  (Authorization: Bearer <sync key>)  {action:"status"} | {action:"create", mode:"submit"|"view", ttlMinutes} | {action:"revoke"}
+  guest  (Authorization: Guest <token>)      {action:"info"} | {action:"submit", name, urgency, impact, from?}
+```
 
 ## Deploy to Vercel
 
@@ -73,8 +94,10 @@ public/index.html         the whole app (HTML, CSS, JS; no framework, no build s
 public/sw.js              offline cache for the app shell
 public/manifest.webmanifest, public/icons/   install-to-home-screen
 public/vendor/qrcode.js   QR code generator (MIT, Kazuhiko Arase)
-api/sync.js               Vercel function: POST /api/sync
+api/sync.js               Vercel function: POST /api/sync (GET for setup diagnostics)
+api/guest.js              Vercel function: POST /api/guest (guest links)
 lib/sync-core.js          sync protocol, validation and SQL
+lib/guest-core.js         guest links: create / status / revoke / info / submit
 lib/db.js                 Neon / node-postgres adapter
 schema.sql                tables (created automatically)
 dev-server.mjs            local server that behaves like Vercel

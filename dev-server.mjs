@@ -1,11 +1,11 @@
-// Local development server: serves public/ and mounts api/sync.js the way Vercel does.
+// Local development server: serves public/ and mounts api/*.js the way Vercel does.
 //   DATABASE_URL=postgres://… DB_DRIVER=pg node dev-server.mjs
 // Without DATABASE_URL the app still runs; sync reports that it isn't set up.
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import handler from './api/sync.js';
+const handlers = { '/api/sync': (await import('./api/sync.js')).default, '/api/guest': (await import('./api/guest.js')).default };
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
 const port = Number(process.env.PORT) || 3000;
@@ -16,7 +16,8 @@ const types = {
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
-  if (url.pathname === '/api/sync') {
+  const handler = handlers[url.pathname];
+  if (handler) {
     let raw = '';
     for await (const chunk of req) raw += chunk;
     try { req.body = raw ? JSON.parse(raw) : undefined; } catch { req.body = raw; }

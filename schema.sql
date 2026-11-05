@@ -19,3 +19,14 @@ create table if not exists items (
 );
 
 create index if not exists items_desk_rev on items (desk, rev);
+
+create table if not exists guest_links (
+  token_hash text primary key,
+  desk text not null references desks(desk) on delete cascade,
+  mode text not null,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  submissions integer not null default 0
+);
+
+create index if not exists guest_links_desk on guest_links (desk);
