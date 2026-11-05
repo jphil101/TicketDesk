@@ -200,7 +200,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
 
 /* Sections & tickets */
 .sec{display:grid;gap:10px;min-width:0}
-.sec-h{display:flex;align-items:baseline;gap:8px;margin:0;font:700 11.5px/1 var(--f-body);letter-spacing:.09em;text-transform:uppercase;color:var(--fg-2)}
+.sec-h{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;margin:0;font:700 11.5px/1 var(--f-body);letter-spacing:.09em;text-transform:uppercase;color:var(--fg-2)}
 .sec-h .n{font-family:var(--f-mono);color:var(--fg-3);letter-spacing:0}
 .sec-h .hint{text-transform:none;letter-spacing:0;font-weight:400;color:var(--fg-3);font-size:12.5px}
 .tickets{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -212,7 +212,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
 .task[data-dir="right"] .sb-del,.task[data-dir="left"] .sb-done{visibility:hidden}
 .swipe-bg span{transition:transform .15s}
 .task.armed .swipe-bg span{transform:scale(1.15)}
-.task-inner{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto auto;align-items:center;background:var(--surface);border-radius:13px;box-shadow:var(--shadow);touch-action:pan-y;min-height:60px;transition:box-shadow .15s}
+.task-inner{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto auto auto;align-items:center;background:var(--surface);border-radius:13px;box-shadow:var(--shadow);touch-action:pan-y;min-height:60px;transition:box-shadow .15s}
 @media (hover:hover){.task-inner:hover{box-shadow:var(--shadow),0 0 0 1px var(--line-strong)}}
 .stub{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px 0;border-right:1.5px dashed color-mix(in srgb,var(--pc) 45%,var(--line-strong));position:relative;border-radius:13px 0 0 13px;background:color-mix(in srgb,var(--pc) 11%,var(--surface))}
 .task.done .stub{background:color-mix(in srgb,var(--good) 8%,var(--surface));border-right-color:var(--line-strong)}
@@ -404,6 +404,12 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 .req{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;padding:12px 12px 12px 15px;border-radius:13px;background:var(--surface);border:1.5px dashed color-mix(in srgb,var(--pc) 50%,var(--line-strong))}
 .req-main{display:grid;gap:3px;flex:1;min-width:180px}
 .req .pbadge{margin:0}
+.req-status{font:600 10.5px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:5px 7px;border-radius:6px;background:var(--surface-2);color:var(--fg-2)}
+.req.st-added .req-status{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--fg)}
+.req.st-declined{opacity:.72}
+.req.st-declined .req-status{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--fg)}
+.req.editing{flex-direction:column;align-items:stretch}
+.req-edit{display:grid;gap:10px}
 .req-acts{display:flex;gap:6px;margin-left:auto}
 .mini.primary{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
 .opt-group{border:0;margin:0;padding:0;display:grid;gap:8px;min-width:0}
@@ -417,6 +423,34 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 .task.ro .task-inner{touch-action:auto}
 #guestBody{display:grid;gap:18px;min-width:0}
 .guest-hero{gap:10px}
+
+/* Snooze & stale */
+.snz{width:36px;height:36px;margin-left:-6px;border:0;background:none;border-radius:8px;display:grid;place-items:center;color:var(--fg-3);opacity:0;padding:0}
+.snz:hover{color:var(--fg);background:var(--surface-2)}
+.snz:focus-visible,.task.carried .snz{opacity:1}
+@media (hover:hover){.task:hover .snz{opacity:1}}
+@media (hover:none){.snz{display:none}.task.carried .snz{display:grid;margin-right:6px}}
+.task.stale-q .task-inner{z-index:1}
+.stale-bar{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;margin-top:-12px;padding:20px 12px 10px 15px;border-radius:0 0 13px 13px;background:color-mix(in srgb,var(--p1) 9%,var(--surface));font-size:13.5px;color:var(--fg-2);box-shadow:var(--shadow)}
+.stale-acts{display:flex;gap:6px;flex-wrap:wrap}
+.mini.danger{color:var(--danger)}
+.pop{position:fixed;z-index:60;min-width:220px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);padding:5px;display:grid}
+.pop button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:10px;border-radius:8px;font-size:14px;color:var(--fg)}
+.pop button:hover,.pop button:focus-visible{background:var(--surface-2)}
+.pop small{color:var(--fg-3);font:500 12px/1 var(--f-mono)}
+
+/* Notifications */
+.toggles{display:grid;gap:10px}
+.toggles.inline{display:flex;gap:10px 18px;flex-wrap:wrap}
+.tgl{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.tgl input{appearance:none;-webkit-appearance:none;flex:none;width:38px;height:22px;border-radius:11px;background:var(--line-strong);position:relative;margin:0;cursor:pointer;transition:background .15s}
+.tgl input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.tgl input:checked{background:var(--good)}
+.tgl input:checked::after{transform:translateX(16px)}
+.tgl input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.tgl span{display:grid;gap:1px;padding-top:1px}
+.tgl small{color:var(--fg-3);font-size:12.5px}
+.email-form{display:grid;gap:10px;padding-top:4px}
 
 /* Sync panel */
 .sync-panel{display:grid;gap:14px}
@@ -451,12 +485,12 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
     <div class="brand">
       <svg width="30" height="30" viewBox="0 0 28 28" aria-hidden="true"><path fill="var(--ink)" d="M4 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4.2a3.8 3.8 0 0 0 0 7.6V22a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4.2a3.8 3.8 0 0 0 0-7.6V6Z"/><path d="M10.5 7v14" stroke="var(--bg)" stroke-width="1.6" stroke-dasharray="2 2"/><rect x="6.3" y="8" width="2.4" height="2.4" rx=".6" fill="var(--p1)"/><rect x="6.3" y="12.8" width="2.4" height="2.4" rx=".6" fill="var(--p3)"/><rect x="6.3" y="17.6" width="2.4" height="2.4" rx=".6" fill="var(--p4)"/><path d="M14.5 14.2l2 2 4-4.4" fill="none" stroke="var(--bg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <p class="brand-name">Ticket Desk</p>
-      <button type="button" class="sync" id="sync" data-state="loading" aria-label="Sync status. Open sync and backup"><i></i><span id="syncText">Loading</span></button>
+      <button type="button" class="sync" id="sync" data-state="loading" aria-label="Sync status. Open settings"><i></i><span id="syncText">Loading</span></button>
     </div>
     <div class="top-acts">
       <button type="button" class="hbtn" id="openGuests" aria-label="Guest access"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6M16 11h6"/></svg><span>Guests</span><b class="badge" id="reqBadge" hidden></b></button>
       <button type="button" class="hbtn" id="openRecur" aria-label="Recurring tasks"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg><span>Recurring</span></button>
-      <button type="button" class="hbtn" id="openMore" aria-label="Sync and backup"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.2a4.4 4.4 0 0 1-.8 8.8H7z"/><path d="M12 11v5M9.5 13.5L12 11l2.5 2.5"/></svg><span>Sync &amp; backup</span></button>
+      <button type="button" class="hbtn" id="openMore" aria-label="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
     </div>
   </header>
 
@@ -469,6 +503,7 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
     </div>
     <div class="controls" id="addControls"></div>
     <p class="adding-to" id="addingTo" hidden></p>
+    <p class="adding-to" id="captureNote" hidden></p>
   </form>
 
   <nav class="tabs" aria-label="Views">
@@ -549,10 +584,11 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 <dialog id="moreDlg" class="sheet-dlg" aria-labelledby="moreTitle">
   <div class="sheet">
     <div class="sheet-head">
-      <h2 id="moreTitle">Sync &amp; backup</h2>
+      <h2 id="moreTitle">Settings</h2>
       <button type="button" class="icon-btn" id="moreClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div id="syncPanel" class="sync-panel"></div>
+    <section class="more-sec"><h3 class="sec-h">Notifications</h3><div id="notifyPanel" class="sync-panel"></div></section>
     <section class="more-sec">
       <h3 class="sec-h">Backup</h3>
       <div class="btn-row">
@@ -567,6 +603,7 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 </dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="pop" id="snoozePop" role="menu" aria-label="Snooze until" hidden></div>
 
 <script>
 (() => {
@@ -595,6 +632,7 @@ const ICON = {
   trash: svg(17, '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>', 1.8),
   note: svg(12, '<path d="M5 4h14v16H5zM8.5 9h7M8.5 13h7M8.5 17h4"/>'),
   search: svg(17, '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>'),
+  snooze: svg(17, '<circle cx="12" cy="13" r="7.5"/><path d="M12 9.5V13l2.5 2M5 3.5 2.5 6M19 3.5 21.5 6"/>', 1.9),
   repeat: svg(12, '<path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>', 2.2),
 };
 const EMPTY_ART = `<svg width="78" height="62" viewBox="0 0 78 62" aria-hidden="true"><g transform="rotate(-8 39 31)"><rect x="10" y="14" width="56" height="30" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.5"/><path d="M26 14v30" stroke="var(--line-strong)" stroke-dasharray="3 3"/></g><g transform="rotate(5 39 31)"><rect x="14" y="18" width="56" height="30" rx="6" fill="var(--surface)" stroke="var(--fg-3)" stroke-width="1.5"/><path d="M30 18v30" stroke="var(--fg-3)" stroke-dasharray="3 3"/><rect x="19" y="27" width="6" height="6" rx="1.5" fill="var(--p3)"/><rect x="36" y="26" width="26" height="4" rx="2" fill="var(--line-strong)"/><rect x="36" y="34" width="16" height="4" rx="2" fill="var(--line)"/></g></svg>`;
@@ -689,6 +727,8 @@ function generate() {
   // Carry over: unfinished tasks from earlier days move to today and remember the day they came from.
   const stale = [...S.tasks.values()].filter(t => !t.done && t.day < today);
   if (stale.length) { store.saveMany('tasks', stale.map(t => ({...t, day: today, carriedFrom: t.carriedFrom || t.day}))); return; }
+  // Reviewed guest requests are kept 30 days so guests can see the outcome, then removed.
+  for (const r of [...S.requests.values()]) if (r.status && r.resolvedAt && Date.now() - r.resolvedAt > 30 * 864e5) store.remove('requests', r.id);
   for (const r of S.rules.values()) {
     if (r.paused) continue;
     const due = latestDue(r, today);
@@ -856,9 +896,9 @@ const store = {
 /* ---------- task actions ---------- */
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const nextSeq = () => { let m = 0; for (const t of S.tasks.values()) m = Math.max(m, t.seq || 0); return m + 1; };
-function addTask(name, u, i, day) {
+function addTask(name, u, i, day, notes = '') {
   const now = Date.now();
-  const t = {id: 't' + newId(), seq: nextSeq(), name, urgency: u, impact: i, day, done: false, doneAt: null, notes: '', createdAt: now, updatedAt: now};
+  const t = {id: 't' + newId(), seq: nextSeq(), name, urgency: u, impact: i, day, done: false, doneAt: null, notes, createdAt: now, updatedAt: now};
   S.fresh = {id: t.id, kind: 'add', at: now};
   store.save('tasks', t);
   toast(`Added ${tid(t)} as P${prio(u, i)} ${PRIO[prio(u, i)]}`, () => store.remove('tasks', t.id));
@@ -911,17 +951,22 @@ function ticketHTML(t, ctx = {}) {
   const meta = [];
   if (t.ruleId) { const r = S.rules.get(t.ruleId); meta.push(`<span class="rep">${ICON.repeat}${esc(r ? freqText(r) : 'Recurring')}</span>`); }
   meta.push(esc(t.done ? `P${p} · ${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact` : `${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact`));
-  if (ctx.carried) { const from = t.carriedFrom || t.day, n = Math.max(1, diffDays(from, todayKey())); meta.push(`<span class="age${n >= 3 ? ' stale' : ''}">${n} day${n > 1 ? 's' : ''}</span> ` + esc(`from ${fmtShort(from)}`)); }
+  const today = todayKey();
+  const carriedDays = ctx.carried ? Math.max(1, diffDays(t.carriedFrom || t.day, today)) : 0;
+  const stale = !t.done && carriedDays >= STALE_DAYS && !(t.keptOn && diffDays(t.keptOn, today) < STALE_DAYS);
+  if (ctx.carried) meta.push(`<span class="age${carriedDays >= 3 ? ' stale' : ''}">${carriedDays} day${carriedDays > 1 ? 's' : ''}</span> ` + esc(`from ${fmtShort(t.carriedFrom || t.day)}`));
   if (t.done && ctx.doneTime) meta.push(esc(`done ${fmtTime(t.doneAt)}`));
   const f = S.fresh && S.fresh.id === t.id && Date.now() - S.fresh.at < 700 ? ' fresh-' + S.fresh.kind : '';
-  return `<li class="task p${p}${t.done ? ' done' : ''}${f}" data-id="${esc(t.id)}">
+  return `<li class="task p${p}${t.done ? ' done' : ''}${ctx.carried ? ' carried' : ''}${stale ? ' stale-q' : ''}${f}" data-id="${esc(t.id)}">
   <div class="swipe-bg" aria-hidden="true"><span class="sb-done">${t.done ? 'Reopen' : 'Done'}</span><span class="sb-del">Delete</span></div>
   <div class="task-inner">
     <div class="stub"><button type="button" class="check" data-act="toggle" aria-pressed="${!!t.done}" aria-label="${t.done ? 'Reopen' : 'Mark done'}: ${esc(t.name)}">${ICON.check}</button><span class="tid">${tid(t)}</span></div>
     <button type="button" class="task-main" data-act="edit"><span class="task-name">${esc(t.name)}</span><span class="task-meta">${meta.join(' · ')}${t.notes ? `<span title="Has notes">${ICON.note}</span>` : ''}</span></button>
     ${t.done ? '<span class="stamp" aria-hidden="true">Done</span>' : `<span class="pbadge" title="Priority ${p}: ${PRIO[p]}">P${p}</span>`}
+    ${t.done ? '' : `<button type="button" class="snz" data-act="snooze" aria-label="Snooze ${tid(t)}" aria-haspopup="menu" title="Snooze">${ICON.snooze}</button>`}
     <button type="button" class="del" data-act="del" aria-label="Delete ${tid(t)}">${ICON.trash}</button>
   </div>
+  ${stale ? `<div class="stale-bar"><span>Carried ${carriedDays} days. Still relevant?</span><span class="stale-acts"><button type="button" class="mini" data-act="keep">Keep</button><button type="button" class="mini" data-act="snooze" aria-haspopup="menu">Snooze</button><button type="button" class="mini danger" data-act="drop">Drop</button></span></div>` : ''}
 </li>`;
 }
 const list = (arr, ctx) => `<ul class="tickets">${arr.map(t => ticketHTML(t, ctx)).join('')}</ul>`;
@@ -1205,12 +1250,12 @@ const nameIn = $('#taskName'), sug = $('#suggest');
 const ADD_BTN = '<button type="submit" class="btn-primary" id="addBtn" disabled>Add ticket</button>';
 function renderAddControls() { $('#addControls').innerHTML = controlsHTML('add', S.add.u, S.add.i, ADD_BTN); syncAddBtn(); }
 function syncAddBtn() { const b = $('#addBtn'); if (b) b.disabled = !nameIn.value.trim(); }
-const SCOPES = {add: () => S.add, edit: () => S.edit, rule: () => S.rf, guest: () => S.gForm};
-const HOSTS = {add: '#addControls', edit: '#editControls', rule: '#ruleControls', guest: '#guestControls'};
+const SCOPES = {add: () => S.add, edit: () => S.edit, rule: () => S.rf, guest: () => S.gForm, req: () => S.reqEdit};
+const HOSTS = {add: '#addControls', edit: '#editControls', rule: '#ruleControls', guest: '#guestControls', req: '#reqControls'};
 function refreshReadout(scope) { const st = SCOPES[scope](); const host = $(HOSTS[scope]).querySelector('.readout'); host.outerHTML = matrixHTML(st.u, st.i, scope); }
 function bindControls(container) {
   container.addEventListener('change', e => {
-    const m = e.target.name && e.target.name.match(/^(add|edit|rule|guest)-(u|i)$/); if (!m) return;
+    const m = e.target.name && e.target.name.match(/^(add|edit|rule|guest|req)-(u|i)$/); if (!m) return;
     SCOPES[m[1]]()[m[2]] = Number(e.target.value);
     refreshReadout(m[1]);
   });
@@ -1237,7 +1282,8 @@ $('#addForm').addEventListener('submit', e => {
   e.preventDefault();
   const name = nameIn.value.trim().replace(/\s+/g, ' ');
   if (!name) { nameIn.focus(); return; }
-  addTask(name, S.add.u, S.add.i, dayForNew());
+  addTask(name, S.add.u, S.add.i, dayForNew(), S.pendingLink || '');
+  S.pendingLink = null; renderCaptureNote();
   nameIn.value = ''; S.add = {u: 2, i: 2}; renderAddControls(); closeSug(); nameIn.focus();
 });
 
@@ -1414,16 +1460,16 @@ function drawQR(box, text, tries = 0) {
     box.innerHTML = `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges"><path d="${d}" fill="var(--qr-fg)"/></svg>`;
   } catch { box.hidden = true; }
 }
-function openMore() { unlinkArmed = false; $('#syncPanel').dataset.sig = ''; renderSyncPanel(); if (!more.open) more.showModal(); }
+function openMore() { unlinkArmed = false; $('#syncPanel').dataset.sig = ''; renderSyncPanel(); if (!more.open) more.showModal(); loadNotify(); }
 async function copyText(text, what) {
   try { await navigator.clipboard.writeText(text); toast(`${what} copied`); }
   catch { const el = $('#keyText'); if (el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } toast('Select the key and copy it.'); }
 }
 function linkTo(key, msg) {
-  if (store.key) store.unlink();
+  if (store.key) { disablePush(true, store.key); store.unlink(); }
   store.link(key);
   pendingJoin = null; joinOpen = false;
-  renderSyncPanel(); toast(msg);
+  renderSyncPanel(); toast(msg); loadNotify();
 }
 $('#syncPanel').addEventListener('click', e => {
   const b = e.target.closest('[data-sync]'); if (!b) return;
@@ -1437,7 +1483,7 @@ $('#syncPanel').addEventListener('click', e => {
   else if (a === 'now') store.sync();
   else if (a === 'unlink') { unlinkArmed = true; renderSyncPanel(); }
   else if (a === 'unlink-no') { unlinkArmed = false; renderSyncPanel(); }
-  else if (a === 'unlink-yes') { unlinkArmed = false; store.unlink(); renderSyncPanel(); toast('This device is unlinked.'); }
+  else if (a === 'unlink-yes') { unlinkArmed = false; disablePush(true, store.key); store.unlink(); renderSyncPanel(); renderNotifyPanel(); toast('This device is unlinked.'); }
 });
 $('#syncPanel').addEventListener('submit', e => {
   e.preventDefault();
@@ -1517,10 +1563,10 @@ function timeLeft(iso) {
   const h = Math.round((m % 1440) / 60);
   return `${Math.floor(m / 1440)} d${h ? ' ' + h + ' h' : ''}`;
 }
-async function guestApi(body, auth) {
+async function guestApi(body, auth, path = '/api/guest') {
   let res, data;
   try {
-    res = await fetch('/api/guest', {method: 'POST', cache: 'no-store', headers: {'Content-Type': 'application/json', 'Authorization': auth || 'Bearer ' + store.key}, body: JSON.stringify(body)});
+    res = await fetch(path, {method: 'POST', cache: 'no-store', headers: {'Content-Type': 'application/json', 'Authorization': auth || 'Bearer ' + store.key}, body: JSON.stringify(body)});
     data = await res.json().catch(() => null);
   } catch { throw Object.assign(new Error('Couldn’t reach the desk. Check your connection and try again.'), {status: 0}); }
   if (!res.ok) throw Object.assign(new Error((data && data.error) || 'The server didn’t respond as expected.'), {status: res.status, code: data && data.code});
@@ -1528,10 +1574,18 @@ async function guestApi(body, auth) {
 }
 
 /* inbox: guest requests arrive through sync as kind "requests" */
-const sortedRequests = () => [...S.requests.values()].sort((a, b) => (a.submittedAt || 0) - (b.submittedAt || 0));
+// Requests stay as items after review (status "added" / "declined") so the guest can see the outcome.
+const sortedRequests = () => [...S.requests.values()].filter(r => !r.status).sort((a, b) => (a.submittedAt || 0) - (b.submittedAt || 0));
+const REQ_STATUS = {waiting: 'Waiting', added: 'Added', declined: 'Declined', reviewed: 'Reviewed'};
 function reqCardHTML(r, actions) {
+  if (actions && S.reqEdit && S.reqEdit.id === r.id) {
+    const e = S.reqEdit;
+    return `<li class="req editing p${prio(e.u, e.i)}" data-req="${esc(r.id)}"><div class="req-edit"><label class="fl" for="reqName">Edit before adding</label><input class="inp" id="reqName" maxlength="200" value="${esc(e.name)}"><div class="controls" id="reqControls">${controlsHTML('req', e.u, e.i, '')}</div></div><div class="req-acts"><button type="button" class="mini" data-req-act="cancel">Cancel</button><button type="button" class="mini primary" data-req-act="accept">Add to today</button></div></li>`;
+  }
   const p = prio(r.urgency, r.impact);
-  return `<li class="req p${p}"${actions ? ` data-req="${esc(r.id)}"` : ''}><div class="req-main"><span class="task-name">${esc(r.name)}</span><span class="task-meta">${esc(actions ? (r.from ? 'From ' + r.from : 'From a guest') + ' · ' + agoShort(r.submittedAt || r.updatedAt) + ' · ' : 'Sent ' + agoShort(r.at) + ' · ')}${LEVEL_S[r.urgency]} urgency · ${LEVEL_S[r.impact]} impact</span></div><span class="pbadge">P${p}</span>${actions ? '<div class="req-acts"><button type="button" class="mini" data-req-act="decline">Decline</button><button type="button" class="mini primary" data-req-act="accept">Add to today</button></div>' : ''}</li>`;
+  const st = actions ? '' : (r.status || 'waiting');
+  const meta = actions ? `${r.from ? 'From ' + r.from : 'From a guest'} · ${agoShort(r.submittedAt || r.updatedAt)} · ` : `Sent ${agoShort(r.at)} · `;
+  return `<li class="req p${p}${st ? ' st-' + st : ''}"${actions ? ` data-req="${esc(r.id)}"` : ''}><div class="req-main"><span class="task-name">${esc(r.name)}</span><span class="task-meta">${esc(meta)}${LEVEL_S[r.urgency]} urgency · ${LEVEL_S[r.impact]} impact</span></div>${st ? `<span class="req-status">${REQ_STATUS[st]}</span>` : ''}<span class="pbadge">P${p}</span>${actions ? '<div class="req-acts"><button type="button" class="mini" data-req-act="edit">Edit</button><button type="button" class="mini" data-req-act="decline">Decline</button><button type="button" class="mini primary" data-req-act="accept">Add to today</button></div>' : ''}</li>`;
 }
 function inboxHTML() {
   const reqs = sortedRequests();
@@ -1540,20 +1594,25 @@ function inboxHTML() {
 }
 function acceptRequest(id) {
   const r = S.requests.get(id); if (!r) return;
+  const e = S.reqEdit && S.reqEdit.id === id ? S.reqEdit : null;
+  S.reqEdit = null;
+  const name = (e ? e.name : r.name).replace(/\s+/g, ' ').trim().slice(0, 200) || r.name;
   const now = Date.now();
-  const t = {id: 't' + newId(), seq: nextSeq(), name: r.name, urgency: r.urgency, impact: r.impact, day: todayKey(), done: false, doneAt: null,
+  const t = {id: 't' + newId(), seq: nextSeq(), name, urgency: e ? e.u : r.urgency, impact: e ? e.i : r.impact, day: todayKey(), done: false, doneAt: null,
     notes: r.from ? `Requested by ${r.from}` : 'Requested by a guest', fromGuest: true, createdAt: now, updatedAt: now};
   S.fresh = {id: t.id, kind: 'add', at: now};
-  store.save('tasks', t); store.remove('requests', id);
-  toast(`Added ${tid(t)} from a guest request`, () => { store.remove('tasks', t.id); store.save('requests', r); });
+  store.save('tasks', t);
+  store.save('requests', {...r, status: 'added', resolvedAt: now, taskId: t.id});
+  toast(`Added ${tid(t)} from a guest request`, () => { store.remove('tasks', t.id); store.save('requests', {...r, status: null, resolvedAt: null, taskId: null}); });
 }
 function declineRequest(id) {
   const r = S.requests.get(id); if (!r) return;
-  store.remove('requests', id);
-  toast('Request declined', () => store.save('requests', r));
+  if (S.reqEdit && S.reqEdit.id === id) S.reqEdit = null;
+  store.save('requests', {...r, status: 'declined', resolvedAt: Date.now()});
+  toast('Request declined', () => store.save('requests', {...r, status: null, resolvedAt: null}));
 }
 function renderGuestBadge() {
-  const n = S.requests.size, b = $('#reqBadge');
+  const n = sortedRequests().length, b = $('#reqBadge');
   b.hidden = !n; b.textContent = n > 9 ? '9+' : String(n);
   $('#openGuests').setAttribute('aria-label', n ? `Guest access, ${n} request${n > 1 ? 's' : ''} waiting` : 'Guest access');
 }
@@ -1570,10 +1629,10 @@ async function refreshGuestStatus() {
   catch (e) { GS.error = e.message; }
   GS.loading = false; renderGuestPanel();
 }
-function openGuests() { GS.replacing = false; $('#guestPanel').dataset.sig = ''; if (!guestDlg.open) guestDlg.showModal(); refreshGuestStatus(); }
+function openGuests() { GS.replacing = false; $('#guestPanel').dataset.sig = ''; if (!guestDlg.open) guestDlg.showModal(); refreshGuestStatus(); if (store.key && !NS.loaded) loadNotify().then(renderGuestPanel); }
 function renderGuestPanel() {
   const p = $('#guestPanel');
-  const n = S.requests.size;
+  const n = sortedRequests().length;
   const waiting = n ? `<p class="note">${n} request${n > 1 ? 's are' : ' is'} waiting for you at the top of today’s Day view.</p>` : '';
   let html;
   if (!store.key) {
@@ -1588,6 +1647,7 @@ function renderGuestPanel() {
         ? `<div class="qr-row"><div class="qr" id="gqr" role="img" aria-label="QR code for the guest link"></div><div class="qr-text"><p>${MODE_DESC[a.mode]}</p><span class="link-code" id="gLinkText">${esc(guestLinkUrl(mine.token))}</span><div class="btn-row"><button type="button" class="btn-ghost" data-g="copy">Copy link</button></div></div></div>`
         : `<p class="note">This link was made on another device, so its code is shown there. You can still replace it or stop it here.</p>`}
       <p class="note muted">${a.submissions} ticket${a.submissions === 1 ? '' : 's'} sent through this link so far.</p>
+      ${NS.loaded && !NS.device ? '<p class="note muted">Want an alert when a ticket arrives? Turn on notifications in Settings.</p>' : ''}
       ${waiting}
       <div class="btn-row"><button type="button" class="btn-ghost" data-g="replace">New link</button><button type="button" class="btn-ghost danger" data-g="stop">Stop sharing now</button></div>`;
   } else {
@@ -1665,12 +1725,17 @@ function guestTick() {
   if (new Date(GUEST.expiresAt) <= Date.now()) { GUEST.state = 'expired'; return renderGuest(); }
   renderGuestPill();
   // board refresh: every minute while someone is looking, never while idle (lets the database sleep)
-  if (GUEST.mode === 'view' && !document.hidden && Date.now() - GUEST.lastActive < 600000 && (GUEST.ticks = (GUEST.ticks || 0) + 1) % 2 === 0) guestInfo();
+  const waiting = GUEST.sent.some(x => x.id && (!x.status || x.status === 'waiting'));
+  if ((GUEST.mode === 'view' || waiting) && !document.hidden && Date.now() - GUEST.lastActive < 600000 && (GUEST.ticks = (GUEST.ticks || 0) + 1) % 2 === 0) guestInfo();
 }
 async function guestInfo() {
   if (!GUEST || GUEST.state === 'expired') return;
   try {
-    const d = await guestApi({action: 'info'}, 'Guest ' + GUEST.token);
+    const ids = GUEST.sent.filter(x => x.id && (!x.status || x.status === 'waiting')).map(x => x.id).slice(-30);
+    const d = await guestApi({action: 'info', ids}, 'Guest ' + GUEST.token);
+    let changedSent = false;
+    for (const x of GUEST.sent) { const st = d.statuses && d.statuses[x.id]; if (st && st !== (x.status || 'waiting')) { x.status = st; changedSent = true; } }
+    if (changedSent) { lsSet('td.guestSent.' + GUEST.token.slice(0, 10), GUEST.sent.slice(-30)); renderGuestSent(); }
     const fresh = GUEST.state !== 'ok' || GUEST.mode !== d.mode;
     Object.assign(GUEST, {mode: d.mode, expiresAt: d.expiresAt, tasks: Array.isArray(d.tasks) ? d.tasks.filter(validTask) : [], state: 'ok'});
     if (fresh) renderGuest(); else { renderGuestBoard(); renderGuestPill(); }
@@ -1708,7 +1773,7 @@ function renderGuest() {
 function renderGuestSent() {
   const el = $('#gSent'); if (!el) return;
   const s = GUEST.sent;
-  el.innerHTML = s.length ? `<h3 class="sec-h">Sent from this device <span class="n">${s.length}</span><span class="hint">waiting for the owner’s review</span></h3><ul class="tickets">${s.slice().reverse().map(x => reqCardHTML(x, false)).join('')}</ul>` : '';
+  el.innerHTML = s.length ? `<h3 class="sec-h">Sent from this device <span class="n">${s.length}</span><span class="hint">updates when the owner reviews them</span></h3><ul class="tickets">${s.slice().reverse().map(x => reqCardHTML(x, false)).join('')}</ul>` : '';
 }
 function roTicketHTML(t) {
   const p = prioOf(t), today = todayKey();
@@ -1739,8 +1804,8 @@ $('#guestBody').addEventListener('submit', async e => {
   GUEST.busy = true;
   const btn = $('#gSend'); btn.disabled = true; btn.textContent = 'Sending…';
   try {
-    await guestApi({action: 'submit', name, urgency: S.gForm.u, impact: S.gForm.i, from}, 'Guest ' + GUEST.token);
-    GUEST.sent.push({name, urgency: S.gForm.u, impact: S.gForm.i, at: Date.now()});
+    const d = await guestApi({action: 'submit', name, urgency: S.gForm.u, impact: S.gForm.i, from}, 'Guest ' + GUEST.token);
+    GUEST.sent.push({id: d.id, name, urgency: S.gForm.u, impact: S.gForm.i, at: Date.now(), status: 'waiting'});
     lsSet('td.guestSent.' + GUEST.token.slice(0, 10), GUEST.sent.slice(-30));
     $('#gTask').value = ''; S.gForm = {u: 2, i: 2};
     $('#guestControls').innerHTML = controlsHTML('guest', 2, 2, GUEST_SEND_BTN);
@@ -1752,6 +1817,185 @@ $('#guestBody').addEventListener('submit', async e => {
   GUEST.busy = false;
 });
 bindControls($('#guestBody'));
+bindControls($('#view'));
+
+/* ---------- notifications (owner): push on this device, email for the desk ---------- */
+const NS = {loading: false, loaded: false, error: '', device: null, email: null, emailAvailable: false, digestUtc: '02:00', publicKey: null, busy: false};
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const userTz = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } };
+const notifyApi = (body, key) => guestApi(body, key ? 'Bearer ' + key : null, '/api/notify');
+function digestLocalTime(utc) {
+  const [h, m] = String(utc || '02:00').split(':').map(Number), d = new Date();
+  d.setUTCHours(h, m, 0, 0);
+  return d.toLocaleTimeString(undefined, {hour: 'numeric', minute: '2-digit'});
+}
+const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4); return Uint8Array.from(atob((s + p).replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)); };
+const sameKey = (a, b) => { const x = new Uint8Array(a); return x.length === b.length && x.every((v, i) => v === b[i]); };
+async function currentSub() {
+  if (!pushSupported()) return null;
+  try { const reg = await navigator.serviceWorker.getRegistration(); return reg ? await reg.pushManager.getSubscription() : null; } catch { return null; }
+}
+async function loadNotify() {
+  if (!store.key) return renderNotifyPanel();
+  NS.loading = !NS.loaded; renderNotifyPanel();
+  try {
+    const sub = await currentSub();
+    const d = await notifyApi({action: 'status', endpoint: sub ? sub.endpoint : undefined});
+    Object.assign(NS, {device: sub ? d.device : null, email: d.email, emailAvailable: d.emailAvailable, digestUtc: d.digestUtc, publicKey: d.publicKey, loaded: true, error: ''});
+  } catch (e) { NS.error = e.message; }
+  NS.loading = false; renderNotifyPanel();
+}
+async function enablePush() {
+  NS.busy = true; NS.error = ''; renderNotifyPanel();
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') throw new Error(perm === 'denied' ? 'Notifications are blocked for this site. Allow them in your browser’s site settings, then try again.' : 'Notifications weren’t allowed.');
+    const reg = await navigator.serviceWorker.ready;
+    if (!NS.publicKey) NS.publicKey = (await notifyApi({action: 'status'})).publicKey;
+    const key = b64u(NS.publicKey);
+    let sub = await reg.pushManager.getSubscription();
+    if (sub && sub.options && sub.options.applicationServerKey && !sameKey(sub.options.applicationServerKey, key)) { await sub.unsubscribe(); sub = null; }
+    if (!sub) sub = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: key});
+    const prefs = {guest: true, digest: true};
+    await notifyApi({action: 'subscribe', subscription: sub.toJSON(), tz: userTz(), prefs});
+    NS.device = {prefs};
+    toast('Notifications are on for this device.');
+  } catch (e) { NS.error = e.message || 'Couldn’t turn on notifications.'; }
+  NS.busy = false; renderNotifyPanel();
+}
+// key: the desk to tell (captured before an unlink or desk switch clears it)
+async function disablePush(quiet, key = store.key) {
+  try {
+    const sub = await currentSub();
+    if (sub) { if (key) await notifyApi({action: 'unsubscribe', endpoint: sub.endpoint}, key).catch(() => {}); await sub.unsubscribe().catch(() => {}); }
+  } catch {}
+  NS.device = null;
+  if (!quiet) { toast('Notifications are off for this device.'); renderNotifyPanel(); }
+}
+async function setPushPref(k, v) {
+  const sub = await currentSub(); if (!sub || !NS.device) return;
+  const prefs = {...NS.device.prefs, [k]: v};
+  try { await notifyApi({action: 'prefs', endpoint: sub.endpoint, prefs}); NS.device.prefs = prefs; }
+  catch (e) { toast(e.message); }
+  renderNotifyPanel();
+}
+function renderNotifyPanel() {
+  const p = $('#notifyPanel'); if (!p) return;
+  const at = digestLocalTime(NS.digestUtc);
+  let html;
+  if (!store.key) html = '<p class="note muted">Turn on sync above to get notified about guest tickets and a morning summary.</p>';
+  else if (NS.loading) html = '<p class="note muted">Checking notification settings…</p>';
+  else {
+    let push;
+    if (!pushSupported()) push = isIOS() && !isStandalone()
+      ? '<p class="note">On iPhone and iPad, add Ticket Desk to your Home Screen (Share → Add to Home Screen), open it from there, then turn notifications on.</p>'
+      : '<p class="note">This browser can’t show notifications from websites.</p>';
+    else if (NS.device) push = `<div class="toggles">
+        <label class="tgl"><input type="checkbox" data-pref="guest"${NS.device.prefs.guest ? ' checked' : ''}><span><b>When a guest sends a ticket</b><small>Straight away</small></span></label>
+        <label class="tgl"><input type="checkbox" data-pref="digest"${NS.device.prefs.digest ? ' checked' : ''}><span><b>Morning summary</b><small>Around ${esc(at)} your time, when anything is open</small></span></label>
+      </div>
+      <div class="btn-row"><button type="button" class="btn-ghost" data-n="test">Send a test</button><button type="button" class="btn-ghost" data-n="off">Turn off on this device</button></div>`;
+    else push = `<p class="note">Get a notification on this device when a guest sends a ticket, and a short summary each morning around ${esc(at)}.</p>
+      <div class="btn-row"><button type="button" class="btn-primary" data-n="on"${NS.busy ? ' disabled' : ''}>${NS.busy ? 'Turning on…' : 'Turn on for this device'}</button></div>`;
+    const e = NS.email;
+    const email = NS.emailAvailable
+      ? `<form class="email-form" id="emailForm"><label class="fl" for="nEmail">Email alerts</label>
+          <div class="day-row"><input class="inp" id="nEmail" type="email" autocomplete="email" placeholder="you@example.com" value="${esc(e ? e.address : '')}"><button type="submit" class="btn-ghost">Save</button></div>
+          <div class="toggles inline"><label class="tgl"><input type="checkbox" id="nEmailGuest"${!e || e.guest ? ' checked' : ''}><span><b>Guest tickets</b></span></label><label class="tgl"><input type="checkbox" id="nEmailDigest"${!e || e.digest ? ' checked' : ''}><span><b>Morning summary</b></span></label></div>
+          ${e ? '<div class="btn-row"><button type="button" class="btn-ghost" data-n="testmail">Send a test email</button></div>' : ''}</form>`
+      : '<p class="note muted">Email alerts are off on this server. They’re optional and free: add a Resend API key in Vercel (see the README).</p>';
+    html = (NS.error ? `<p class="lead"><i class="dot" data-state="error"></i><span>${esc(NS.error)}</span></p>` : '') + push + email;
+  }
+  if (p.dataset.sig === html) return;
+  p.innerHTML = html; p.dataset.sig = html;
+}
+$('#notifyPanel').addEventListener('click', e => {
+  const b = e.target.closest('[data-n]'); if (!b) return;
+  const a = b.dataset.n;
+  if (a === 'on') enablePush();
+  else if (a === 'off') disablePush();
+  else if (a === 'test') currentSub().then(sub => notifyApi({action: 'test', endpoint: sub ? sub.endpoint : undefined}))
+    .then(r => toast(r.sent ? 'Test sent. It should appear in a few seconds.' : 'The test didn’t go through. Turn notifications off and on again.')).catch(err => toast(err.message));
+  else if (a === 'testmail') notifyApi({action: 'testEmail'}).then(() => toast('Test email sent. Check your inbox and spam folder.')).catch(err => toast(err.message));
+});
+$('#notifyPanel').addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.pref; if (k) setPushPref(k, e.target.checked); });
+$('#notifyPanel').addEventListener('submit', async e => {
+  e.preventDefault();
+  const address = $('#nEmail').value.trim(), guest = $('#nEmailGuest').checked, digest = $('#nEmailDigest').checked;
+  try {
+    await notifyApi({action: 'email', address, guest, digest, tz: userTz()});
+    NS.email = address ? {address, guest, digest} : null;
+    toast(address ? 'Email alerts saved.' : 'Email alerts turned off.');
+    renderNotifyPanel();
+  } catch (err) { toast(err.message); }
+});
+
+/* ---------- snooze ---------- */
+const STALE_DAYS = 5;
+let snoozeFor = null;
+const snoozeOptions = () => { const t = todayKey(); return [['Tomorrow', addDays(t, 1)], ['In 2 days', addDays(t, 2)], ['Next week', addDays(mondayOf(t), 7)]]; };
+function openSnooze(id, btn) {
+  const pop = $('#snoozePop'); snoozeFor = id;
+  pop.innerHTML = snoozeOptions().map(([l, d]) => `<button type="button" role="menuitem" data-snz="${d}"><span>${l}</span><small>${esc(fmtShort(d))}</small></button>`).join('') +
+    '<button type="button" role="menuitem" data-snz="pick"><span>Pick a day…</span></button>';
+  pop.hidden = false;
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  pop.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + 'px';
+  pop.style.top = (r.bottom + 6 + h > innerHeight - 8 ? Math.max(8, r.top - h - 6) : r.bottom + 6) + 'px';
+  pop.querySelector('button').focus({preventScroll: true});
+}
+function closeSnooze() { $('#snoozePop').hidden = true; snoozeFor = null; }
+function snoozeTask(id, day) {
+  const t = S.tasks.get(id); if (!t) return;
+  store.save('tasks', {...t, day, carriedFrom: null, keptOn: null});
+  toast(`Snoozed ${tid(t)} to ${fmtShort(day)}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, day: t.day, carriedFrom: t.carriedFrom || null, keptOn: t.keptOn || null}); });
+}
+$('#snoozePop').addEventListener('click', e => {
+  const b = e.target.closest('[data-snz]'); if (!b) return;
+  const id = snoozeFor; closeSnooze();
+  if (b.dataset.snz !== 'pick') return snoozeTask(id, b.dataset.snz);
+  openEdit(id);
+  setTimeout(() => { const d = $('#editDay'); d.focus(); try { if (d.showPicker) d.showPicker(); } catch {} }, 60);
+});
+document.addEventListener('pointerdown', e => { if (!$('#snoozePop').hidden && !e.target.closest('#snoozePop,[data-act="snooze"]')) closeSnooze(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#snoozePop').hidden) { e.preventDefault(); closeSnooze(); } });
+addEventListener('scroll', () => { if (!$('#snoozePop').hidden) closeSnooze(); }, {passive: true});
+
+/* ---------- quick capture: share sheet, ?new= links, home-screen shortcut ---------- */
+//   /?new=Call+the+bank&u=3&i=2   /#new=Call%20the%20bank   /?title=…&text=…&url=… (Android share)   /?focus=new
+function renderCaptureNote() {
+  const el = $('#captureNote');
+  if (!S.pendingLink) { el.hidden = true; el.innerHTML = ''; return; }
+  let label = S.pendingLink; try { const u = new URL(S.pendingLink); label = u.host + (u.pathname.length > 1 ? u.pathname : ''); } catch {}
+  el.hidden = false;
+  el.innerHTML = `<span>Link saved to the ticket’s notes: <b>${esc(label.length > 48 ? label.slice(0, 47) + '…' : label)}</b></span><button type="button" class="link-btn" data-drop-link>Don’t save it</button>`;
+}
+$('#captureNote').addEventListener('click', e => { if (e.target.closest('[data-drop-link]')) { S.pendingLink = null; renderCaptureNote(); } });
+function checkCapture() {
+  const q = new URLSearchParams(location.search);
+  const hm = /^#new=(.*)$/.exec(location.hash);
+  const focusOnly = q.get('focus') === 'new';
+  let text = q.get('new') || q.get('text') || (hm ? decodeURIComponent(hm[1].replace(/\+/g, ' ')) : '');
+  const title = q.get('title') || '';
+  let link = q.get('url') || '';
+  if (!text && !title && !link && !focusOnly) return false;
+  const found = text.match(/https?:\/\/\S+/);
+  if (!link && found) link = found[0];
+  if (link) text = text.replace(link, ' ');
+  text = text.replace(/\s+/g, ' ').trim();
+  let host = ''; try { host = new URL(link).host; } catch {}
+  const name = (text || title.trim() || (host ? 'Look at ' + host : '')).slice(0, 200);
+  try { history.replaceState(null, '', location.pathname + '#' + S.view); } catch {}
+  if (name) { nameIn.value = name; syncAddBtn(); }
+  const u = Number(q.get('u')), i = Number(q.get('i'));
+  if ([1, 2, 3].includes(u) || [1, 2, 3].includes(i)) { if ([1, 2, 3].includes(u)) S.add.u = u; if ([1, 2, 3].includes(i)) S.add.i = i; renderAddControls(); }
+  S.pendingLink = /^https?:\/\//.test(link) ? link.slice(0, 2000) : null;
+  renderCaptureNote();
+  setTimeout(() => { nameIn.focus(); nameIn.setSelectionRange(nameIn.value.length, nameIn.value.length); }, 50);
+  return true;
+}
 
 /* ---------- navigation ---------- */
 function setView(v) {
@@ -1767,7 +2011,7 @@ function shift(dir) {
   else return;
   render();
 }
-window.addEventListener('hashchange', () => { if (GUEST || /^#guest=/.test(location.hash)) { location.reload(); return; } if (checkJoinHash()) return; const h = location.hash.slice(1); if (VIEWS.includes(h) && h !== S.view) { S.view = h; render(); } });
+window.addEventListener('hashchange', () => { if (GUEST || /^#guest=/.test(location.hash)) { location.reload(); return; } if (checkJoinHash()) return; if (/^#new=/.test(location.hash)) { checkCapture(); return; } const h = location.hash.slice(1); if (VIEWS.includes(h) && h !== S.view) { S.view = h; render(); } });
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
 
 view.addEventListener('click', e => {
@@ -1775,17 +2019,25 @@ view.addEventListener('click', e => {
   const el = e.target.closest('[data-act],[data-req-act],[data-nav],[data-goto],[data-range],[data-prio],[data-clear-filters]');
   if (!el) return;
   const id = el.closest('[data-id]')?.dataset.id;
-  if (el.dataset.reqAct) { const rid = el.closest('[data-req]').dataset.req; return el.dataset.reqAct === 'accept' ? acceptRequest(rid) : declineRequest(rid); }
+  if (el.dataset.reqAct) {
+    const rid = el.closest('[data-req]').dataset.req, a = el.dataset.reqAct, r = S.requests.get(rid);
+    if (a === 'edit' && r) { S.reqEdit = {id: rid, name: r.name, u: r.urgency, i: r.impact}; render(); const n = $('#reqName'); if (n) { n.focus(); n.select(); } return; }
+    if (a === 'cancel') { S.reqEdit = null; return render(); }
+    return a === 'accept' ? acceptRequest(rid) : declineRequest(rid);
+  }
   if (el.dataset.act === 'toggle') return toggleDone(id);
   if (el.dataset.act === 'edit') return openEdit(id);
   if (el.dataset.act === 'del') return deleteTask(id);
+  if (el.dataset.act === 'snooze') return !$('#snoozePop').hidden && snoozeFor === id ? closeSnooze() : openSnooze(id, el);
+  if (el.dataset.act === 'drop') return deleteTask(id);
+  if (el.dataset.act === 'keep') { const t = S.tasks.get(id); if (t) { store.save('tasks', {...t, keptOn: todayKey()}); toast(`Kept. You’ll be asked again in ${STALE_DAYS} days if it’s still open.`); } return; }
   if (el.dataset.nav) return el.dataset.nav === 'today' ? (S.anchor = todayKey(), render()) : shift(el.dataset.nav === 'next' ? 1 : -1);
   if (el.dataset.goto) { S.anchor = el.dataset.goto; return el.dataset.gotoView ? (setView(el.dataset.gotoView), window.scrollTo({top: 0, behavior: 'smooth'})) : render(); }
   if (el.dataset.range) { S.doneF.range = el.dataset.range; view.querySelectorAll('[data-range]').forEach(b => b.setAttribute('aria-pressed', String(b === el))); return renderDoneResults(); }
   if (el.dataset.prio) { const p = Number(el.dataset.prio); S.doneF.prios.has(p) ? S.doneF.prios.delete(p) : S.doneF.prios.add(p); el.setAttribute('aria-pressed', String(S.doneF.prios.has(p))); return renderDoneResults(); }
   if (el.hasAttribute('data-clear-filters')) { S.doneF = {q: '', range: 'all', prios: new Set()}; shownView = null; render(); }
 }, true);
-view.addEventListener('input', e => { if (e.target.id === 'doneSearch') { S.doneF.q = e.target.value; renderDoneResults(); } });
+view.addEventListener('input', e => { if (e.target.id === 'reqName' && S.reqEdit) S.reqEdit.name = e.target.value; if (e.target.id === 'doneSearch') { S.doneF.q = e.target.value; renderDoneResults(); } });
 
 /* chart tooltip */
 function showTip(bar) {
@@ -1876,6 +2128,7 @@ if (guestHash) {
   render();
   store.init();
   checkJoinHash();
+  checkCapture();
 }
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));

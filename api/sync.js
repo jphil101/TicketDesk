@@ -13,11 +13,12 @@ async function diagnose() {
     catch { database = 'unreachable'; }
   }
   let next;
-  if (database === 'reachable') next = 'Sync is set up. In the app, open Sync & backup and tap “Sync now”.';
+  if (database === 'reachable') next = 'Sync is set up. In the app, open Settings and tap “Sync now”.';
   else if (database === 'unreachable') next = `${found.name} is set but the database didn't answer. Check the database in the Neon console (it may be suspended for the month or deleted), or reconnect it under Vercel → Storage.`;
   else if (seen.length) next = `Database variables exist (${seen.join(', ')}) but none ends in DATABASE_URL or POSTGRES_URL. Reconnect the database under Vercel → Storage without a custom prefix, then redeploy.`;
   else next = `No database variables in this ${deployment} deployment. In Vercel: Storage → your Neon database → Connect Project, tick ${deployment === 'preview' ? 'Preview' : 'Production'}, then Deployments → ⋯ → Redeploy. If you only just connected it, you just need to redeploy.`;
-  return { ok: database === 'reachable', deployment, database, usingVariable: found ? found.name : null, databaseVariablesSeen: seen, next };
+  const notifications = { push: database === 'reachable' ? 'ready (keys are created automatically)' : 'needs the database', email: env.RESEND_API_KEY ? 'configured' : 'off (optional: add RESEND_API_KEY)' };
+  return { ok: database === 'reachable', deployment, database, usingVariable: found ? found.name : null, databaseVariablesSeen: seen, notifications, next };
 }
 
 export default async function handler(req, res) {

@@ -91,6 +91,8 @@ You don't need to create any tables. The server creates them on the first sync. 
 
 **Check:** tick a task on the phone. Within about 15 seconds it shows as done on the laptop. Switching back to the laptop window makes it sync straight away.
 
+**Optional: notifications.** Once the app is on your Home Screen, open **Settings → Notifications → Turn on for this device** to get alerts for guest tickets and a morning summary. For email alerts as well, see *Notifications* in the README.
+
 ## 7. Lock the server to your key
 
 Your site is public, so anyone who finds the address could create their own key and store data in your database. Once all your devices are linked, close that off:

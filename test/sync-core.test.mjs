@@ -39,7 +39,7 @@ test('database variable lookup', async () => {
 });
 
 test('sync against Postgres', { skip }, async t => {
-  await query('drop table if exists guest_links', []);
+  for (const t of ['push_subs', 'desk_settings', 'guest_links']) await query('drop table if exists ' + t, []);
   await query('drop table if exists items', []);
   await query('drop table if exists desks', []);
 

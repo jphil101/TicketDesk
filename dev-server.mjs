@@ -5,7 +5,8 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-const handlers = { '/api/sync': (await import('./api/sync.js')).default, '/api/guest': (await import('./api/guest.js')).default };
+const handlers = { '/api/sync': (await import('./api/sync.js')).default, '/api/guest': (await import('./api/guest.js')).default,
+  '/api/notify': (await import('./api/notify.js')).default, '/api/digest': (await import('./api/digest.js')).default };
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
 const port = Number(process.env.PORT) || 3000;

@@ -30,3 +30,29 @@ create table if not exists guest_links (
 );
 
 create index if not exists guest_links_desk on guest_links (desk);
+
+create table if not exists settings (
+  key text primary key,
+  value jsonb not null
+);
+
+create table if not exists push_subs (
+  endpoint text primary key,
+  desk text not null references desks(desk) on delete cascade,
+  sub jsonb not null,
+  tz text not null default 'UTC',
+  prefs jsonb not null default '{"guest": true, "digest": true}',
+  last_digest text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists push_subs_desk on push_subs (desk);
+
+create table if not exists desk_settings (
+  desk text primary key references desks(desk) on delete cascade,
+  email text,
+  email_guest boolean not null default false,
+  email_digest boolean not null default false,
+  tz text not null default 'UTC',
+  last_digest text
+);
