@@ -391,6 +391,7 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 /* Sync panel */
 .sync-panel{display:grid;gap:14px}
 .lead{margin:0;display:flex;gap:10px;align-items:baseline;font-size:15px;color:var(--fg)}
+.lead a{color:var(--fg);text-underline-offset:3px;overflow-wrap:anywhere}
 .dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--fg-3);transform:translateY(-1px)}
 .dot[data-state="sync"]{background:var(--good)}.dot[data-state="saving"]{background:var(--p2)}.dot[data-state="error"]{background:var(--danger)}
 .more-sec.first{border-top:0;padding-top:0}
@@ -1290,7 +1291,7 @@ function statusLine() {
   const s = store.state, pend = store.pendingCount();
   const plural = n => n + ' change' + (n === 1 ? '' : 's');
   if (s === 'denied') return esc(store.error || 'The server didn’t accept this key.');
-  if (s === 'unconfigured') return 'Sync isn’t set up on this server yet, so tasks stay on this device for now.';
+  if (s === 'unconfigured') return `Sync isn’t set up on this server yet, so tasks stay on this device for now. Open <a href="/api/sync" target="_blank" rel="noopener">${esc(location.host)}/api/sync</a> to see what’s missing.`;
   if (s === 'offline') return `You’re offline. ${pend ? plural(pend) + ' will sync when you’re back.' : 'Changes save here and sync when you’re back.'}`;
   if (s === 'error') return esc(store.error || 'The sync server had a problem.') + ' Retrying automatically.';
   if (pend || s === 'syncing') return 'Syncing…';

@@ -29,6 +29,15 @@ test('key normalisation', () => {
   assert.notEqual(deskIdFor('A'.repeat(20)), deskIdFor('A'.repeat(20), 'pepper'));
 });
 
+test('database variable lookup', async () => {
+  const { findDatabaseUrl } = await import('../lib/db.js');
+  assert.equal(findDatabaseUrl({ DATABASE_URL: 'a', POSTGRES_URL: 'b' }).name, 'DATABASE_URL');
+  assert.equal(findDatabaseUrl({ POSTGRES_URL: 'b' }).name, 'POSTGRES_URL');
+  assert.equal(findDatabaseUrl({ TICKETDESK_DATABASE_URL: 'c', TICKETDESK_DATABASE_URL_UNPOOLED: 'd' }).name, 'TICKETDESK_DATABASE_URL');
+  assert.equal(findDatabaseUrl({ DATABASE_URL_UNPOOLED: 'd', POSTGRES_URL_NON_POOLING: 'e' }), null);
+  assert.equal(findDatabaseUrl({ DATABASE_URL: '' }), null);
+});
+
 test('sync against Postgres', { skip }, async t => {
   await query('drop table if exists items', []);
   await query('drop table if exists desks', []);

@@ -121,7 +121,7 @@ The claude.ai version and your Vercel site **don't sync with each other**. Using
 
 | You see | What it means | Fix |
 |---|---|---|
-| Pill says **Sync off** | The server has no `DATABASE_URL` | Check **Settings → Environment Variables** lists `DATABASE_URL`, then **Redeploy** (step 4.7). |
+| Pill says **Sync off**, or “Sync isn’t set up on this server yet” | The function can't find the database connection | Open `https://<your-site>/api/sync` in a browser. It names the problem and the fix: database not connected to this environment, not redeployed since connecting, or saved under a name it doesn't recognise. Then tap **Sync now**. |
 | Pill says **Key rejected** | Usually `ALLOW_NEW_DESKS=false` plus a key the server hasn't seen (a typo, or **Turn on sync** pressed again) | Use **I have a key** with the key from your password manager. To start over, remove `ALLOW_NEW_DESKS` and redeploy. |
 | Pill says **Retrying** | The server or database returned an error | Vercel project → **Logs**, filter `/api/sync`. If Neon has hit its monthly cap, the database is suspended until next month. Your changes stay queued on each device meanwhile. |
 | Pill says **Offline** | No connection | Nothing to do. Changes stay queued and sync when you're back online. |
