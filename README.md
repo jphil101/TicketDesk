@@ -4,6 +4,7 @@ A low-friction personal ticketing app. Type what needs doing, tap **Urgency** an
 
 - **Day** (main view), **Fortnight** and **Month** breakdowns, plus a **Done** section with search, date range and priority filters
 - **Suggestions** from your past task names while you type. They are only suggestions and are never typed in for you.
+- **Carry over:** at the start of each day, unticked tasks from earlier days move to today. They appear in their own *Carried over* section showing where they came from and how many days they've been carried. Past days note what moved on.
 - **Recurring tasks** (daily, weekdays, weekly, every 2 weeks, monthly) are added to your day automatically. If last time's copy is still open it moves forward instead of piling up.
 - Edit by tapping a ticket. On touch screens, swipe right to complete and left to delete. Every action has Undo.
 - **Works offline** and installs to the home screen (iOS, Android, desktop) as a PWA

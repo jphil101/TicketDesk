@@ -388,6 +388,13 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap}
 .explain{margin:0;padding-left:18px;display:grid;gap:5px;font-size:13.5px;color:var(--fg-2)}
 
+/* Carried over */
+.carried-sec .sec-h::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--p2);align-self:center}
+.age{font:600 11px/1 var(--f-mono);padding:3px 6px;border-radius:5px;background:color-mix(in srgb,var(--p2) 18%,transparent);color:var(--fg)}
+.age.stale{background:color-mix(in srgb,var(--p1) 20%,transparent)}
+.moved-note{margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;color:var(--fg-2);padding:10px 12px;border-radius:12px;border:1px dashed var(--line-strong);background:color-mix(in srgb,var(--surface) 60%,transparent)}
+.moved-note svg{flex:none;color:var(--p2)}
+
 /* Sync panel */
 .sync-panel{display:grid;gap:14px}
 .lead{margin:0;display:flex;gap:10px;align-items:baseline;font-size:15px;color:var(--fg)}
@@ -638,6 +645,9 @@ function scheduleGen() { clearTimeout(genTimer); genTimer = setTimeout(generate,
 function generate() {
   if (!S.loaded || !S.confirmed) return;
   const today = todayKey();
+  // Carry over: unfinished tasks from earlier days move to today and remember the day they came from.
+  const stale = [...S.tasks.values()].filter(t => !t.done && t.day < today);
+  if (stale.length) { store.saveMany('tasks', stale.map(t => ({...t, day: today, carriedFrom: t.carriedFrom || t.day}))); return; }
   for (const r of S.rules.values()) {
     if (r.paused) continue;
     const due = latestDue(r, today);
@@ -728,6 +738,14 @@ const store = {
     S[kind].delete(id); this.persist(kind);
     this.enqueue(kind, id, null, Math.max(Date.now(), ((prev && prev.updatedAt) || 0) + 1));
     changed();
+  },
+  saveMany(kind, objs) {   // a batch: one local write and one render
+    if (!objs.length) return;
+    for (const o of objs) {
+      const obj = {...o, updatedAt: Math.max(Date.now(), (o.updatedAt || 0) + 1)};
+      S[kind].set(obj.id, obj); this.enqueue(kind, obj.id, obj, obj.updatedAt);
+    }
+    this.persist(kind); changed();
   },
   pendingCount() { return Object.keys(this.outbox).length; },
   async sync() {
@@ -851,7 +869,7 @@ function ticketHTML(t, ctx = {}) {
   const meta = [];
   if (t.ruleId) { const r = S.rules.get(t.ruleId); meta.push(`<span class="rep">${ICON.repeat}${esc(r ? freqText(r) : 'Recurring')}</span>`); }
   meta.push(esc(t.done ? `P${p} · ${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact` : `${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact`));
-  if (ctx.carried) meta.push(esc(`from ${fmtShort(t.day)}`));
+  if (ctx.carried) { const from = t.carriedFrom || t.day, n = Math.max(1, diffDays(from, todayKey())); meta.push(`<span class="age${n >= 3 ? ' stale' : ''}">${n} day${n > 1 ? 's' : ''}</span> ` + esc(`from ${fmtShort(from)}`)); }
   if (t.done && ctx.doneTime) meta.push(esc(`done ${fmtTime(t.doneAt)}`));
   const f = S.fresh && S.fresh.id === t.id && Date.now() - S.fresh.at < 700 ? ' fresh-' + S.fresh.kind : '';
   return `<li class="task p${p}${t.done ? ' done' : ''}${f}" data-id="${esc(t.id)}">
@@ -889,8 +907,13 @@ const emptyHTML = (title, text, extra = '') => `<div class="empty">${EMPTY_ART}<
 function dayHTML() {
   const k = S.anchor, today = todayKey(), isToday = k === today;
   const {open, done} = dayBuckets(k);
-  const carried = isToday ? all().filter(t => !t.done && t.day < today).sort(byPrio) : [];
-  const openAll = open.concat(carried);
+  const isCarried = t => t.carriedFrom && t.carriedFrom < t.day;
+  // On today, also catch anything still sitting on an earlier day (before a first sync has run the move).
+  const pending = isToday ? all().filter(t => !t.done && t.day < today) : [];
+  const carried = open.filter(isCarried).concat(pending).sort(byPrio);
+  const fresh = open.filter(t => !isCarried(t));
+  const openAll = fresh.concat(carried);
+  const movedOn = k < today ? all().filter(t => !t.done && t.carriedFrom === k && t.day > k).length : 0;
   const total = openAll.length + done.length;
   const pct = total ? done.length / total : 0;
   const crit = openAll.filter(t => prioOf(t) <= 2).length;
@@ -910,8 +933,9 @@ function dayHTML() {
   else sentence = `<b>${openAll.length}</b> open${crit ? `, <b>${crit}</b> high priority or above` : ''} · <b>${done.length}</b> done`;
 
   let body = '';
-  if (carried.length) body += `<section class="sec"><h3 class="sec-h">Carried over <span class="n">${carried.length}</span><span class="hint">still open from earlier days</span></h3>${list(carried, {carried: true})}</section>`;
-  body += `<section class="sec"><h3 class="sec-h">Open <span class="n">${open.length}</span></h3>${open.length ? list(open) : emptyDay(k, isToday, carried.length, done.length)}</section>`;
+  if (carried.length) body += `<section class="sec carried-sec"><h3 class="sec-h">Carried over <span class="n">${carried.length}</span><span class="hint">unfinished from earlier days, moved here automatically</span></h3>${list(carried, {carried: true})}</section>`;
+  if (movedOn) body += `<p class="moved-note">${ICON.right}<span>${movedOn} unfinished task${movedOn > 1 ? 's' : ''} from this day ${movedOn > 1 ? 'were' : 'was'} carried over to today.</span><button type="button" class="link-btn" data-goto="${today}">Go to today</button></p>`;
+  body += `<section class="sec"><h3 class="sec-h">${carried.length ? 'New for this day' : 'Open'} <span class="n">${fresh.length}</span></h3>${fresh.length ? list(fresh) : emptyDay(k, isToday, carried.length, done.length)}</section>`;
   if (done.length) body += `<section class="sec"><h3 class="sec-h">Done <span class="n">${done.length}</span></h3>${list(done, {doneTime: true})}</section>`;
 
   return `<div class="hero">
@@ -1250,7 +1274,7 @@ function collectEdit(extra = {}) {
   const day = $('#editDay').value;
   if (!name) { $('#editName').focus(); return null; }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) { $('#editDay').focus(); return null; }
-  return {...t, name, day, notes: $('#editNotes').value.trim(), urgency: S.edit.u, impact: S.edit.i, updatedAt: Date.now(), ...extra};
+  return {...t, name, day, notes: $('#editNotes').value.trim(), urgency: S.edit.u, impact: S.edit.i, ...(day !== t.day ? {carriedFrom: null} : {}), updatedAt: Date.now(), ...extra};
 }
 editForm.addEventListener('submit', e => { e.preventDefault(); const t = collectEdit(); if (!t) return; store.save('tasks', t); dlg.close(); toast(`Saved ${tid(t)}`); });
 $('#editDone').addEventListener('click', () => {
