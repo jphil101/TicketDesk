@@ -21,7 +21,7 @@ A low-friction personal ticketing app. Type what needs doing, tap **Urgency** an
 ```
 
 1. **Each device saves locally first.** Tasks live in the browser's storage, so the app opens instantly and keeps working offline. Every change also goes into an *outbox*.
-2. **Sync is one request.** The device sends its outbox and the cursor it last saw, and gets back every row that changed since. It runs 0.4 s after an edit, when the app regains focus or comes back online, and every 15 s while you're using it. That slows to every 1–3 minutes when idle and stops while the tab is hidden.
+2. **Sync is one request.** The device sends its outbox and the cursor it last saw, and gets back every row that changed since. It runs 0.4 s after an edit, when the app regains focus or comes back online, and every 15 s while you're using it. After 2 idle minutes it checks once a minute. After 10 idle minutes it stops completely until you touch the app, so the database can sleep. The same applies while the tab is hidden.
 3. **Conflicts:** the most recent edit to a ticket wins, judged by the editing device's clock. Deletes are kept as tombstones so they reach every device. Undoing a delete counts as a newer edit, so the ticket comes back everywhere.
 4. **Ordering:** each push takes the next revision number for that desk while holding the desk's row lock. Revisions therefore become visible in order, and a device's cursor never skips a change.
 5. **Recurring tasks** are only created after a device has completed a sync. Each occurrence has a fixed ID, so two devices can never create the same one twice.
@@ -35,6 +35,8 @@ A low-friction personal ticketing app. Type what needs doing, tap **Urgency** an
 - **Unlink this device** removes the local copy. Your tasks stay on the server and come back when you link again.
 
 ## Deploy to Vercel
+
+Moving over from the claude.ai version? Follow **[MIGRATION.md](MIGRATION.md)**, which covers everything below plus exporting and importing your tasks and linking your phone.
 
 1. Import this repository at <https://vercel.com/new>. No build settings are needed: `vercel.json` serves `public/` and deploys `api/sync.js` as a function.
 2. In the project, open **Storage → Create Database → Neon (Postgres)** and connect it to the project. This adds `DATABASE_URL` for you. The tables are created on the first sync request (see `schema.sql`).

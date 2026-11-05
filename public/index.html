@@ -673,7 +673,7 @@ const joinLink = k => `${location.origin}${location.pathname}#join=${formatKey(k
 
 const store = {
   key: null, cursor: 0, outbox: {}, state: 'local', error: '', inflight: false, again: false,
-  backoff: 0, lastOk: 0, lastActive: Date.now(), soonTimer: 0, retryTimer: 0,
+  backoff: 0, lastOk: 0, lastActive: Date.now(), soonTimer: 0, retryTimer: 0, pollTimer: 0, dormant: false,
   init() {
     S.tasks = new Map(lsList('tasks').map(t => [t.id, t]));
     S.rules = new Map(lsList('rules').map(r => [r.id, r]));
@@ -688,14 +688,25 @@ const store = {
     if (this.key) this.sync();
     this.poll();
     addEventListener('online', () => this.sync());
-    addEventListener('focus', () => this.sync());
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) this.sync(); });
-    for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => { this.lastActive = Date.now(); }, {passive: true});
+    addEventListener('focus', () => { this.touch(); this.sync(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { this.touch(); this.sync(); } });
+    for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => this.touch(), {passive: true});
   },
-  poll() {   // every 15 s while you're using it, slower when idle, paused while hidden
+  // Check for changes every 15 s while you're using it and every minute for the next 10 minutes,
+  // then stop until you come back, so a serverless database (Neon scales to zero after 5 idle
+  // minutes) can sleep even with a window left open all day.
+  poll() {
+    clearTimeout(this.pollTimer);
     const idle = Date.now() - this.lastActive;
-    const wait = idle < 120000 ? 15000 : idle < 600000 ? 60000 : 180000;
-    setTimeout(() => { if (!document.hidden && this.state !== 'denied' && this.state !== 'unconfigured') this.sync(); this.poll(); }, wait);
+    if (idle >= 600000) { this.dormant = true; return; }
+    this.pollTimer = setTimeout(() => {
+      if (!document.hidden && this.state !== 'denied' && this.state !== 'unconfigured') this.sync();
+      this.poll();
+    }, idle < 120000 ? 15000 : 60000);
+  },
+  touch() {
+    this.lastActive = Date.now();
+    if (this.dormant) { this.dormant = false; this.sync(); this.poll(); }
   },
   persist(kind) { lsSet(K[kind], [...S[kind].values()]); },
   enqueue(kind, id, body, updatedAt) {
