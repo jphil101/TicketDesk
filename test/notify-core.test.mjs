@@ -125,11 +125,13 @@ test('notifications', { skip }, async t => {
       { kind: 'tasks', id: 'd1', updatedAt: 1, body: { id: 'd1', name: 'Pay invoice', urgency: 3, impact: 3, day, done: false } },
       { kind: 'tasks', id: 'd2', updatedAt: 1, body: { id: 'd2', name: 'Old thing', urgency: 2, impact: 2, day: '2020-01-01', done: false } },
       { kind: 'tasks', id: 'd3', updatedAt: 1, body: { id: 'd3', name: 'Done thing', urgency: 1, impact: 1, day, done: true } },
+      { kind: 'tasks', id: 'd4', updatedAt: 1, body: { id: 'd4', name: 'Late one', urgency: 1, impact: 1, day, done: false, truce: { start: Date.now() - 10 * 3600e3, resp: 3600e3, res: 4 * 3600e3 }, pauses: [{ from: Date.now() - 9 * 3600e3, until: Date.now() - 8 * 3600e3, reason: 'waiting' }] } },
+      { kind: 'tasks', id: 'd5', updatedAt: 1, body: { id: 'd5', name: 'Paused long', urgency: 1, impact: 1, day, done: false, truce: { start: Date.now() - 5 * 3600e3, resp: 3600e3, res: 4 * 3600e3 }, pauses: [{ from: Date.now() - 4 * 3600e3, until: Date.now() + 3600e3, reason: 'blocked' }] } },
     ] } });
     got.length = 0; mails.length = 0;
     const r = await handleDigest({ query, env });
     assert.deepEqual(r.json, { pushed: 2, emailed: 1, skipped: 0 });
-    assert.match(got[0].payload.body, /^2 open today \(1 P1\) · 1 carried over$/);
+    assert.match(got[0].payload.body, /^4 open today \(1 P1\) · 1 carried over · 1 past TRUCE$/);
     assert.match(mails[0].text, /P1  Pay invoice/);
     assert.match(mails[0].text, /Old thing  \(carried over\)/);
     assert.doesNotMatch(mails[0].text, /Done thing/);

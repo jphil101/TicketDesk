@@ -213,7 +213,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
 .task[data-dir="right"] .sb-del,.task[data-dir="left"] .sb-done{visibility:hidden}
 .swipe-bg span{transition:transform .15s}
 .task.armed .swipe-bg span{transform:scale(1.15)}
-.task-inner{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto auto auto;align-items:center;background:var(--surface);border-radius:13px;box-shadow:var(--shadow);touch-action:pan-y;min-height:60px;transition:box-shadow .15s}
+.task-inner{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto auto auto auto;align-items:center;background:var(--surface);border-radius:13px;box-shadow:var(--shadow);touch-action:pan-y;min-height:60px;transition:box-shadow .15s}
 @media (hover:hover){.task-inner:hover{box-shadow:var(--shadow),0 0 0 1px var(--line-strong)}}
 .stub{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px 0;border-right:1.5px dashed color-mix(in srgb,var(--pc) 45%,var(--line-strong));position:relative;border-radius:13px 0 0 13px;background:color-mix(in srgb,var(--pc) 11%,var(--surface))}
 .task.done .stub{background:color-mix(in srgb,var(--good) 8%,var(--surface));border-right-color:var(--line-strong)}
@@ -229,6 +229,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
 .task-name{font-weight:500;font-size:15.5px;line-height:1.3;overflow-wrap:anywhere;color:var(--fg)}
 .task-meta{font-size:12.5px;color:var(--fg-3);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .task-meta svg{flex:none}
+.tm-rest{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap;min-width:0}
 .rep{display:inline-flex;align-items:center;gap:4px;color:var(--fg-2);font-weight:500}
 .task.done .task-name{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--fg-3) 70%,transparent);color:var(--fg-2)}
 .pbadge{font:700 12.5px/1 var(--f-mono);padding:5px 7px;border-radius:6px;color:var(--pc);background:color-mix(in srgb,var(--pc) 14%,transparent);margin-right:12px}
@@ -482,6 +483,60 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 .ticket-times:empty{display:none}
 #doneExport svg{flex:none}
 
+/* TRUCE */
+.tc{display:inline-flex;align-items:center;gap:4px;font:600 11.5px/1 var(--f-mono);padding:3px 6px;border-radius:5px;white-space:nowrap;color:var(--fg)}
+.tc svg{flex:none}
+.tc.ok{background:color-mix(in srgb,var(--good) 15%,transparent)}
+.tc.warn{background:color-mix(in srgb,var(--p2) 20%,transparent)}
+.tc.bad{background:color-mix(in srgb,var(--danger) 17%,transparent)}
+.tc.paused{background:var(--surface-2);color:var(--fg-2);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.ack{border:1.5px solid var(--ink);background:var(--surface);color:var(--fg);font-weight:700;font-size:12.5px;line-height:1;padding:7px 11px;border-radius:999px;margin-right:10px;white-space:nowrap;min-height:30px}
+.ack:hover{background:var(--ink);color:var(--on-ink)}
+.truce-box{display:grid;gap:9px;padding:12px 14px;border-radius:12px;background:var(--surface-2)}
+.tr-head{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
+.tr-head .fl{margin:0}
+.tr-head small{color:var(--fg-3);font-size:12px}
+.tr-head .ack{margin:0 0 0 auto}
+.tr-row{display:grid;grid-template-columns:84px minmax(90px,auto) minmax(0,1fr);gap:2px 12px;align-items:baseline;font-size:13.5px}
+.tr-k{color:var(--fg-2);font-weight:600}
+.tr-t{font:600 13px/1.3 var(--f-mono)}
+.tr-t small{display:block;font:400 11.5px/1.3 var(--f-body);color:var(--fg-3)}
+.tr-s b.ok{color:var(--good)}.tr-s b.bad{color:var(--danger)}
+@media (max-width:520px){.tr-row{grid-template-columns:84px minmax(0,1fr)}.tr-s{grid-column:2}}
+.tr-pause.on{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13.5px;padding:9px 10px;border-radius:10px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.tr-pause.on svg{margin-right:4px}
+.tr-pause.form{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:2px}
+.tr-pause.form .field:nth-child(2){grid-column:1/-1}
+.tr-pause.form .btn-row{grid-column:1/-1;justify-content:flex-end}
+@media (max-width:520px){.tr-pause.form{grid-template-columns:1fr}}
+select.inp{appearance:auto}
+.fl-opt{text-transform:none;letter-spacing:0;font-weight:400}
+.tr-hist{font-size:13px;color:var(--fg-2)}
+.tr-hist summary{cursor:pointer}
+.tr-hist ul{margin:6px 0 0;padding-left:18px;display:grid;gap:3px}
+.tr-table{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:8px 10px;align-items:start}
+.tr-table .th{font:600 11px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3)}
+.tr-p{display:flex;align-items:center;gap:8px;font-size:13.5px;padding-top:8px}
+.tr-p .pbadge{margin:0}
+.tr-in{font:500 15px/1.2 var(--f-mono);padding:8px 10px}
+.tr-table small{display:block;margin-top:3px;font-size:11.5px;color:var(--fg-3)}
+.tr-actions{grid-column:1/-1;align-items:center}
+@media (max-width:420px){.tr-p span:last-child{display:none}}
+.tiles.tiles-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:560px){.tiles.tiles-3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.trp{display:grid;gap:6px}
+.trp-row{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:4px 12px;align-items:center;font-size:13px;color:var(--fg-2);padding:6px 0;border-top:1px solid var(--line)}
+.trp-row b{color:var(--fg);font-family:var(--f-mono)}
+.trp-row .pbadge{margin:0}
+.trp-l{font:500 11.5px/1.2 var(--f-mono);color:var(--fg-3);text-align:right}
+@media (max-width:560px){.trp-row{grid-template-columns:auto 1fr 1fr}.trp-l{grid-column:2/-1;text-align:left}}
+/* celebrations */
+.fx{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:80}
+.fx-banner{position:fixed;left:50%;top:36%;z-index:81;pointer-events:none;background:var(--ink);color:var(--on-ink);font:800 24px/1.1 var(--f-display);letter-spacing:-.01em;padding:16px 24px;border-radius:18px;box-shadow:var(--shadow-lg);white-space:nowrap;animation:fxBanner 1.9s cubic-bezier(.2,1.3,.4,1) forwards}
+@keyframes fxBanner{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}16%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}26%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-62%) scale(.98)}}
+.toast.celebrate{animation:toastPop .5s cubic-bezier(.2,1.6,.4,1);background:linear-gradient(100deg,var(--ink),color-mix(in srgb,var(--good) 55%,var(--ink)))}
+@keyframes toastPop{0%{transform:translate(-50%,10px) scale(.86)}100%{transform:translate(-50%,0) scale(1)}}
+
 /* Snooze & stale */
 .snz{width:36px;height:36px;margin-left:-6px;border:0;background:none;border-radius:8px;display:grid;place-items:center;color:var(--fg-3);opacity:0;padding:0}
 .snz:hover{color:var(--fg);background:var(--surface-2)}
@@ -598,6 +653,7 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
     </div>
     <p class="rule-note" id="editRuleNote" hidden></p>
     <p class="ticket-times" id="editTimes"></p>
+    <section class="truce-box" id="editTruce" aria-label="TRUCE" hidden></section>
     <div class="field">
       <label class="fl" for="editName">Task</label>
       <input class="inp" id="editName" type="text" maxlength="200" required>
@@ -648,6 +704,8 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
     </div>
     <div id="syncPanel" class="sync-panel"></div>
     <section class="more-sec"><h3 class="sec-h">Notifications</h3><div id="notifyPanel" class="sync-panel"></div></section>
+    <section class="more-sec"><h3 class="sec-h">TRUCE targets</h3><div id="trucePanel" class="sync-panel"></div></section>
+    <section class="more-sec"><h3 class="sec-h">Celebrations</h3><div id="funPanel" class="sync-panel"></div></section>
     <section class="more-sec">
       <h3 class="sec-h">Backup</h3>
       <div class="btn-row">
@@ -693,6 +751,7 @@ const ICON = {
   note: svg(12, '<path d="M5 4h14v16H5zM8.5 9h7M8.5 13h7M8.5 17h4"/>'),
   search: svg(17, '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>'),
   download: svg(16, '<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/>'),
+  pause: svg(12, '<path d="M9 5.5v13M15 5.5v13"/>', 2.6),
   snooze: svg(17, '<circle cx="12" cy="13" r="7.5"/><path d="M12 9.5V13l2.5 2M5 3.5 2.5 6M19 3.5 21.5 6"/>', 1.9),
   repeat: svg(12, '<path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>', 2.2),
 };
@@ -725,7 +784,7 @@ const greeting = () => { const h = new Date().getHours(); return h < 5 ? 'Workin
 
 /* ---------- state ---------- */
 const S = {
-  tasks: new Map(), rules: new Map(), requests: new Map(),
+  tasks: new Map(), rules: new Map(), requests: new Map(), settings: new Map(),
   view: 'day', anchor: todayKey(), today: todayKey(),
   loaded: false, confirmed: false,
   add: {u: 2, i: 2}, edit: {id: null, u: 2, i: 2}, gForm: {u: 2, i: 2},
@@ -738,7 +797,8 @@ const validTask = t => t && typeof t.name === 'string' && t.name.trim() && [1,2,
 const FREQS = ['daily', 'weekdays', 'weekly', 'biweekly', 'monthly'];
 const validRule = r => r && typeof r.name === 'string' && r.name.trim() && [1,2,3].includes(r.urgency) && [1,2,3].includes(r.impact) && FREQS.includes(r.freq) && /^\d{4}-\d{2}-\d{2}$/.test(r.start || '');
 const validRequest = r => r && typeof r.name === 'string' && r.name.trim() && [1,2,3].includes(r.urgency) && [1,2,3].includes(r.impact);
-const VALID = {tasks: validTask, rules: validRule, requests: validRequest};
+const validSetting = x => x && typeof x.id === 'string' && x.id.length < 40;
+const VALID = {tasks: validTask, rules: validRule, requests: validRequest, settings: validSetting};
 
 /* ---------- recurrence ---------- */
 function isDue(r, k) {
@@ -788,6 +848,9 @@ function generate() {
   // Carry over: unfinished tasks from earlier days move to today and remember the day they came from.
   const stale = [...S.tasks.values()].filter(t => !t.done && t.day < today);
   if (stale.length) { store.saveMany('tasks', stale.map(t => ({...t, day: today, carriedFrom: t.carriedFrom || t.day}))); return; }
+  // Open tickets from before TRUCE existed start their clocks now.
+  const untimed = [...S.tasks.values()].filter(t => !t.done && !t.truce);
+  if (untimed.length) { const now = Date.now(); store.saveMany('tasks', untimed.map(t => ({...t, truce: truceSnapshot(prioOf(t), truceStartFor(now, t.day))}))); return; }
   // Reviewed guest requests are kept 30 days so guests can see the outcome, then removed.
   for (const r of [...S.requests.values()]) if (r.status && r.resolvedAt && Date.now() - r.resolvedAt > 30 * 864e5) store.remove('requests', r.id);
   for (const r of S.rules.values()) {
@@ -802,14 +865,14 @@ function generate() {
       const id = 'r' + r.id + '-' + due.replace(/-/g, '');
       if (!S.tasks.has(id)) {
         const now = Date.now();
-        store.save('tasks', {id, ruleId: r.id, seq: nextSeq(), name: r.name, urgency: r.urgency, impact: r.impact, day: due, done: false, doneAt: null, notes: '', createdAt: now, updatedAt: now});
+        store.save('tasks', {id, ruleId: r.id, seq: nextSeq(), name: r.name, urgency: r.urgency, impact: r.impact, day: due, done: false, doneAt: null, notes: '', createdAt: now, updatedAt: now, truce: truceSnapshot(prio(r.urgency, r.impact), truceStartFor(now, due))});
       }
     }
   }
 }
 
 /* ---------- storage: this device first, then /api/sync when a sync key is set ---------- */
-const K = {tasks: 'td.tasks', rules: 'td.rules', requests: 'td.requests', outbox: 'td.outbox', cursor: 'td.cursor', key: 'td.key', lastOk: 'td.lastSync'};
+const K = {tasks: 'td.tasks', rules: 'td.rules', requests: 'td.requests', settings: 'td.settings', outbox: 'td.outbox', cursor: 'td.cursor', key: 'td.key', lastOk: 'td.lastSync'};
 const lsList = kind => { const a = lsGet(K[kind], []); return Array.isArray(a) ? a.filter(VALID[kind]) : []; };
 const KEY_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 function normalizeKey(raw) {
@@ -831,6 +894,7 @@ const store = {
     S.tasks = new Map(lsList('tasks').map(t => [t.id, t]));
     S.rules = new Map(lsList('rules').map(r => [r.id, r]));
     S.requests = new Map(lsList('requests').map(r => [r.id, r]));
+    S.settings = new Map(lsList('settings').map(x => [x.id, x]));
     this.key = normalizeKey(lsGet(K.key, null));
     this.cursor = Number(lsGet(K.cursor, 0)) || 0;
     const ob = lsGet(K.outbox, {}); this.outbox = ob && typeof ob === 'object' && !Array.isArray(ob) ? ob : {};
@@ -921,7 +985,7 @@ const store = {
       if (!cur || (cur.updatedAt || 0) < r.updatedAt) { map.set(r.id, v); touched = true; }
     }
     this.cursor = data.cursor; lsSet(K.cursor, this.cursor); lsSet(K.outbox, this.outbox);
-    if (touched) { this.persist('tasks'); this.persist('rules'); this.persist('requests'); }
+    if (touched) { this.persist('tasks'); this.persist('rules'); this.persist('requests'); this.persist('settings'); }
     this.inflight = false; this.backoff = 0; this.error = ''; this.state = 'synced';
     this.lastOk = Date.now(); lsSet(K.lastOk, this.lastOk);
     const first = !S.confirmed; S.confirmed = true;
@@ -941,7 +1005,7 @@ const store = {
     this.key = key; lsSet(K.key, key);
     this.cursor = 0; lsSet(K.cursor, 0);
     this.outbox = {};
-    for (const kind of ['tasks', 'rules', 'requests']) for (const o of S[kind].values()) this.outbox[kind + ':' + o.id] = {kind, id: o.id, body: o, deleted: false, updatedAt: o.updatedAt || 1};
+    for (const kind of ['tasks', 'rules', 'requests', 'settings']) for (const o of S[kind].values()) this.outbox[kind + ':' + o.id] = {kind, id: o.id, body: o, deleted: false, updatedAt: o.updatedAt || 1};
     lsSet(K.outbox, this.outbox);
     S.confirmed = false; this.state = 'syncing'; this.error = ''; this.backoff = 0;
     renderSync(); this.sync();
@@ -949,7 +1013,7 @@ const store = {
   unlink() {
     this.key = null; this.cursor = 0; this.outbox = {}; this.state = 'local'; this.error = '';
     try { for (const k of Object.values(K)) localStorage.removeItem(k); } catch {}
-    S.tasks = new Map(); S.rules = new Map(); S.requests = new Map(); S.confirmed = true;
+    S.tasks = new Map(); S.rules = new Map(); S.requests = new Map(); S.settings = new Map(); S.confirmed = true;
     changed(); renderSync();
   },
 };
@@ -960,16 +1024,19 @@ const nextSeq = () => { let m = 0; for (const t of S.tasks.values()) m = Math.ma
 function addTask(name, u, i, day, notes = '') {
   const now = Date.now();
   const t = {id: 't' + newId(), seq: nextSeq(), name, urgency: u, impact: i, day, done: false, doneAt: null, notes, createdAt: now, updatedAt: now};
+  t.truce = truceSnapshot(prioOf(t), truceStartFor(now, day));
   S.fresh = {id: t.id, kind: 'add', at: now};
   store.save('tasks', t);
   toast(`Added ${tid(t)} as P${prio(u, i)} ${PRIO[prio(u, i)]}`, () => store.remove('tasks', t.id));
 }
 function toggleDone(id) {
   const t = S.tasks.get(id); if (!t) return;
-  const done = !t.done;
+  const done = !t.done, rect = done ? checkRect(id) : null;
   if (done) S.fresh = {id, kind: 'done', at: Date.now()};
   store.save('tasks', {...t, done, doneAt: done ? Date.now() : null, updatedAt: Date.now()});
-  toast(done ? `Done: ${t.name}` : `Reopened ${tid(t)}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, done: t.done, doneAt: t.doneAt, updatedAt: Date.now()}); });
+  S.lastFanfare = false;
+  toast(done ? celebrateClose(S.tasks.get(id), rect) : `Reopened ${tid(t)}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, done: t.done, doneAt: t.doneAt, updatedAt: Date.now()}); });
+  celebrateToast();
 }
 function deleteTask(id) {
   const t = S.tasks.get(id); if (!t) return;
@@ -981,6 +1048,7 @@ function deleteTask(id) {
 let toastTimer = 0;
 function toast(msg, undo) {
   const el = $('#toast');
+  el.classList.remove('celebrate');
   el.innerHTML = `<span>${esc(msg)}</span>` + (undo ? '<button type="button">Undo</button>' : '');
   if (undo) el.querySelector('button').onclick = () => { undo(); hideToast(); };
   el.classList.add('show');
@@ -1010,6 +1078,7 @@ function controlsHTML(scope, u, i, btn) {
 function ticketHTML(t, ctx = {}) {
   const p = prioOf(t);
   const meta = [];
+  const chip = truceChip(t);   // its own item, so a wrapped line never starts with a separator
   if (t.ruleId) { const r = S.rules.get(t.ruleId); meta.push(`<span class="rep">${ICON.repeat}${esc(r ? freqText(r) : 'Recurring')}</span>`); }
   meta.push(esc(t.done ? `P${p} · ${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact` : `${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact`));
   const today = todayKey();
@@ -1022,7 +1091,8 @@ function ticketHTML(t, ctx = {}) {
   <div class="swipe-bg" aria-hidden="true"><span class="sb-done">${t.done ? 'Reopen' : 'Done'}</span><span class="sb-del">Delete</span></div>
   <div class="task-inner">
     <div class="stub"><button type="button" class="check" data-act="toggle" aria-pressed="${!!t.done}" aria-label="${t.done ? 'Reopen' : 'Mark done'}: ${esc(t.name)}">${ICON.check}</button><span class="tid">${tid(t)}</span></div>
-    <button type="button" class="task-main" data-act="edit"><span class="task-name">${esc(t.name)}</span><span class="task-meta">${meta.join(' · ')}${t.notes ? `<span title="Has notes">${ICON.note}</span>` : ''}</span></button>
+    <button type="button" class="task-main" data-act="edit"><span class="task-name">${esc(t.name)}</span><span class="task-meta">${chip}<span class="tm-rest">${meta.join(' · ')}</span>${t.notes ? `<span title="Has notes">${ICON.note}</span>` : ''}</span></button>
+    ${needsAck(t) ? `<button type="button" class="ack" data-act="ack" aria-label="On it: acknowledge ${tid(t)}">On it</button>` : ''}
     ${t.done ? '<span class="stamp" aria-hidden="true">Done</span>' : `<span class="pbadge" title="Priority ${p}: ${PRIO[p]}">P${p}</span>`}
     ${t.done ? '' : `<button type="button" class="snz" data-act="snooze" aria-label="Snooze ${tid(t)}" aria-haspopup="menu" title="Snooze">${ICON.snooze}</button>`}
     <button type="button" class="del" data-act="del" aria-label="Delete ${tid(t)}">${ICON.trash}</button>
@@ -1361,6 +1431,7 @@ function renderInsights(items, matched, filtered) {
         <div class="legend habit-legend"><span><i class="hs done"></i>Done</span><span><i class="hs missed"></i>Missed</span><span><i class="hs pending"></i>Due today</span><span><i class="hs off"></i>Not due</span></div>`
       : '<p class="note">Turn something you repeat into a habit: set it up under Recurring tasks and it shows here with streaks and a completion rate. <button type="button" class="link-btn" data-open-recur>Set one up</button></p>'}
     </section>
+    <section class="panel ins" aria-label="TRUCE"><h3 class="sec-h">TRUCE<span class="hint">on-time response and resolution, this date range</span></h3>${truceInsightsHTML(items)}</section>
     <div class="ins-row">
       <section class="panel ins" aria-label="Aging open tickets"><h3 class="sec-h">Aging open tickets <span class="n">${openN}</span><span class="hint">time since opened</span></h3>${agingHTML()}</section>
       <section class="panel ins" aria-label="Time to done"><h3 class="sec-h">Time to done<span class="hint">median by priority</span></h3>${ttdHTML(items)}</section>
@@ -1372,11 +1443,14 @@ const toCsv = rows => '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n
 function exportCompleted() {
   const {cutoff, match} = doneFilter();
   const items = all().filter(t => t.done && t.doneAt && match(t) && (!cutoff || doneKey(t) >= cutoff)).sort((a, b) => a.doneAt - b.doneAt);
-  const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes']];
+  const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes', 'Response target (h)', 'Responded after (h)', 'Response met', 'Resolution target (h)', 'Resolved after excl. pauses (h)', 'Resolution met', 'Paused (h)', 'Pause reasons']];
+  const h1 = ms => (ms / 36e5).toFixed(2);
   for (const t of items) {
+    const ts = truceState(t), pz = t.pauses || [];
+    const tr = ts ? [h1(ts.resp.target), h1(ts.resp.elapsed), ts.resp.met ? 'yes' : 'no', h1(ts.res.target), h1(ts.res.elapsed), ts.res.met ? 'yes' : 'no', h1(pz.reduce((a, p) => a + Math.max(0, Math.min(pauseEnd(p), t.doneAt) - p.from), 0)), pz.map(pauseLabel).join('; ')] : ['', '', '', '', '', '', '', ''];
     const r = t.ruleId && S.rules.get(t.ruleId), ttd = timeToDone(t), p = prioOf(t);
     rows.push([tid(t), t.name, `P${p} ${PRIO[p]}`, LEVEL[t.urgency], LEVEL[t.impact], t.createdAt ? localStamp(t.createdAt) : '', localStamp(t.doneAt),
-      ttd == null ? '' : (ttd / 36e5).toFixed(1), t.day, t.carriedFrom || '', r ? `${r.name} (${freqText(r)})` : t.ruleId ? 'yes' : '', t.fromGuest ? 'yes' : '', t.notes || '']);
+      ttd == null ? '' : (ttd / 36e5).toFixed(1), t.day, t.carriedFrom || '', r ? `${r.name} (${freqText(r)})` : t.ruleId ? 'yes' : '', t.fromGuest ? 'yes' : '', t.notes || '', ...tr]);
   }
   if (!items.length) return toast('Nothing to export with these filters.');
   saveFile(`ticket-desk-completed-${todayKey()}.csv`, toCsv(rows), 'text/csv');
@@ -1488,7 +1562,7 @@ $('#openRecur').addEventListener('click', () => { recurBox.open = true; recurBox
 /* ---------- render ---------- */
 const view = $('#view');
 let shownView = null;
-function changed() { S.hist = null; render(); renderRules(); renderGuestBadge(); if (guestDlg.open) renderGuestPanel(); scheduleGen(); }
+function changed() { S.hist = null; truceLearnCache = null; render(); renderRules(); renderGuestBadge(); if (guestDlg.open) renderGuestPanel(); scheduleGen(); }
 function render() {
   updateTabs(); updateAddingTo();
   $('#nextId').textContent = S.loaded ? `Next: ${tidN(nextSeq())}` : '';
@@ -1626,6 +1700,7 @@ function openEdit(id) {
   if (t.done && t.doneAt) times.push(`Done ${fmtDateTime(t.doneAt)}${timeToDone(t) != null ? ` · took ${dur(timeToDone(t))}` : ''}`);
   else if (t.createdAt) times.push(`Open for ${dur(Date.now() - t.createdAt)}`);
   $('#editTimes').innerHTML = times.map(x => `<span>${esc(x)}</span>`).join('');
+  S.edit.pausing = false; renderTruceBox();
   $('#editControls').innerHTML = controlsHTML('edit', t.urgency, t.impact, '');
   dlg.showModal();
 }
@@ -1635,15 +1710,20 @@ function collectEdit(extra = {}) {
   const day = $('#editDay').value;
   if (!name) { $('#editName').focus(); return null; }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) { $('#editDay').focus(); return null; }
-  return {...t, name, day, notes: $('#editNotes').value.trim(), urgency: S.edit.u, impact: S.edit.i, ...(day !== t.day ? {carriedFrom: null} : {}), updatedAt: Date.now(), ...extra};
+  const np = prio(S.edit.u, S.edit.i);
+  const truce = t.truce && !t.done && np !== prioOf(t) ? truceSnapshot(np, t.truce.start) : t.truce;   // new priority, new targets; same start
+  return {...t, name, day, notes: $('#editNotes').value.trim(), urgency: S.edit.u, impact: S.edit.i, truce, ...(day !== t.day ? {carriedFrom: null} : {}), updatedAt: Date.now(), ...extra};
 }
 editForm.addEventListener('submit', e => { e.preventDefault(); const t = collectEdit(); if (!t) return; store.save('tasks', t); dlg.close(); toast(`Saved ${tid(t)}`); });
 $('#editDone').addEventListener('click', () => {
   const cur = S.tasks.get(S.edit.id); if (!cur) return;
   const t = collectEdit(cur.done ? {done: false, doneAt: null} : {done: true, doneAt: Date.now()}); if (!t) return;
   if (t.done) S.fresh = {id: t.id, kind: 'done', at: Date.now()};
+  const rect = $('#editDone').getBoundingClientRect();
   store.save('tasks', t); dlg.close();
-  toast(t.done ? `Done: ${t.name}` : `Reopened ${tid(t)}`, () => store.save('tasks', {...t, done: cur.done, doneAt: cur.doneAt, updatedAt: Date.now()}));
+  S.lastFanfare = false;
+  toast(t.done ? celebrateClose(S.tasks.get(t.id), rect) : `Reopened ${tid(t)}`, () => store.save('tasks', {...t, done: cur.done, doneAt: cur.doneAt, updatedAt: Date.now()}));
+  celebrateToast();
 });
 $('#editDelete').addEventListener('click', () => { const id = S.edit.id; dlg.close(); deleteTask(id); });
 $('#editClose').addEventListener('click', () => dlg.close());
@@ -1733,7 +1813,7 @@ function drawQR(box, text, tries = 0) {
     box.innerHTML = `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges"><path d="${d}" fill="var(--qr-fg)"/></svg>`;
   } catch { box.hidden = true; }
 }
-function openMore() { unlinkArmed = false; $('#syncPanel').dataset.sig = ''; renderSyncPanel(); if (!more.open) more.showModal(); loadNotify(); }
+function openMore() { unlinkArmed = false; $('#syncPanel').dataset.sig = ''; renderSyncPanel(); renderTrucePanel(); renderFunPanel(); if (!more.open) more.showModal(); loadNotify(); }
 async function copyText(text, what) {
   try { await navigator.clipboard.writeText(text); toast(`${what} copied`); }
   catch { const el = $('#keyText'); if (el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } toast('Select the key and copy it.'); }
@@ -1874,6 +1954,7 @@ function acceptRequest(id) {
   const now = Date.now();
   const t = {id: 't' + newId(), seq: nextSeq(), name, urgency: e ? e.u : r.urgency, impact: e ? e.i : r.impact, day: todayKey(), done: false, doneAt: null,
     notes: r.from ? `Requested by ${r.from}` : 'Requested by a guest', fromGuest: true, requestedAt: r.submittedAt || null, createdAt: now, updatedAt: now};
+  t.truce = truceSnapshot(prioOf(t), truceStartFor(now, t.day));
   S.fresh = {id: t.id, kind: 'add', at: now};
   store.save('tasks', t);
   store.save('requests', {...r, status: 'added', resolvedAt: now, taskId: t.id});
@@ -2297,6 +2378,306 @@ document.addEventListener('pointerover', e => { if (e.pointerType !== 'mouse') r
 document.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse') return; const el = e.target.closest('[data-tt]'); if (el) showTT(el); else tt.hidden = true; });
 addEventListener('scroll', () => { tt.hidden = true; }, {passive: true});
 
+/* ---------- TRUCE: Time to Resolve Under Current Energy ---------- */
+// Two clocks per ticket, both from when it's opened (or the start of the day it's planned for):
+//   response   stops at "On it" (or at done, if it was never acknowledged)
+//   resolution stops at done
+// Paused time doesn't count. Targets are copied onto the ticket when it opens, so later changes
+// only affect new tickets.
+const MIN = 6e4, HOUR = 36e5, DAY = 864e5;
+const TRUCE_DEFAULTS = {1: {resp: 15 * MIN, res: 4 * HOUR}, 2: {resp: HOUR, res: DAY}, 3: {resp: 4 * HOUR, res: 3 * DAY}, 4: {resp: DAY, res: 7 * DAY}, 5: {resp: 3 * DAY, res: 30 * DAY}};
+// The learned error factor. Each closed miss adds GAIN × the average of the last WINDOW overruns
+// (each overrun capped at one base target, so one wild miss can't dominate); the total never passes
+// CAP × base. Each on-time close shrinks it by (1 − DECAY), so it follows your current energy down again.
+const LEARN = {window: 10, gain: 0.05, cap: 0.25, decay: 0.98};
+const PAUSE_REASONS = [['waiting', 'Waiting on someone else'], ['blocked', 'Blocked by something'], ['energy', 'Unwell or low energy'], ['away', 'Travelling or away'], ['offhours', 'Outside my working hours'], ['other', 'Other…']];
+const PAUSE_FOR = [[30 * MIN, '30 minutes'], [HOUR, '1 hour'], [2 * HOUR, '2 hours'], [4 * HOUR, '4 hours'], [DAY, '1 day'], [3 * DAY, '3 days'], [7 * DAY, '1 week']];
+const pauseLabel = p => p.reason === 'other' ? (p.note || 'Other') : ((PAUSE_REASONS.find(r => r[0] === p.reason) || [, 'Paused'])[1] + (p.note ? `: ${p.note}` : ''));
+const startOfDayMs = k => +parseKey(k);
+const truceStartFor = (openedAt, day) => Math.max(openedAt, startOfDayMs(day));
+function truceBase(p) {
+  const s = S.settings.get('truce'), c = s && s.targets && s.targets[p], d = TRUCE_DEFAULTS[p];
+  return {resp: c && c.resp > 0 ? c.resp : d.resp, res: c && c.res > 0 ? c.res : d.res};
+}
+const pauseEnd = p => p.endedAt || p.until;
+function pausedWithin(t, from, to) {
+  let ms = 0;
+  for (const p of t.pauses || []) { const a = Math.max(p.from, from), b = Math.min(pauseEnd(p), to); if (b > a) ms += b - a; }
+  return ms;
+}
+const activePause = (t, now = Date.now()) => (t.pauses || []).find(p => p.from <= now && now < pauseEnd(p)) || null;
+function truceState(t, now = Date.now()) {
+  const T = t.truce; if (!T) return null;
+  const clock = end => Math.max(0, end - T.start - pausedWithin(t, T.start, Math.max(end, T.start)));
+  const respEnd = t.ackAt || (t.done && t.doneAt ? t.doneAt : null), resEnd = t.done && t.doneAt ? t.doneAt : null;
+  const part = (target, end) => { const el = clock(end || now); return {target, elapsed: el, left: target - el, final: !!end, met: end ? el <= target : null, over: el - target}; };
+  return {started: now >= T.start, pause: t.done ? null : activePause(t, now), resp: part(T.resp, respEnd), res: part(T.res, resEnd), learnedResp: T.learnedResp || 0, learnedRes: T.learnedRes || 0};
+}
+let truceLearnCache = null;
+function truceLearned() {
+  if (truceLearnCache) return truceLearnCache;
+  const L = {};
+  for (let p = 1; p <= 5; p++) L[p] = {resp: {v: 0, hist: [], n: 0, miss: 0}, res: {v: 0, hist: [], n: 0, miss: 0}};
+  const ev = [];
+  for (const t of S.tasks.values()) {
+    if (!t.truce) continue;
+    const ra = t.ackAt || (t.done && t.doneAt ? t.doneAt : null);
+    if (ra) ev.push({t, k: 'resp', at: ra});
+    if (t.done && t.doneAt) ev.push({t, k: 'res', at: t.doneAt});
+  }
+  ev.sort((a, b) => a.at - b.at);
+  for (const e of ev) {
+    const p = prioOf(e.t), base = truceBase(p)[e.k], X = L[p][e.k], T = e.t.truce;
+    const over = Math.max(0, e.at - T.start - pausedWithin(e.t, T.start, e.at)) - T[e.k];
+    X.n++;
+    if (over > 0) {
+      X.miss++;
+      X.hist.push(Math.min(over, base)); if (X.hist.length > LEARN.window) X.hist.shift();
+      X.v = Math.min(X.v + LEARN.gain * X.hist.reduce((a, b) => a + b, 0) / X.hist.length, LEARN.cap * base);
+    } else X.v *= LEARN.decay;
+  }
+  return truceLearnCache = L;
+}
+function truceSnapshot(p, start) {
+  const b = truceBase(p), L = truceLearned()[p];
+  return {start, resp: Math.round(b.resp + L.resp.v), res: Math.round(b.res + L.res.v), learnedResp: Math.round(L.resp.v), learnedRes: Math.round(L.res.v)};
+}
+const shortWhen = ms => (keyOf(new Date(ms)) === todayKey() ? fmtTime(ms) : fmtDateTime(ms));
+function truceChip(t) {
+  const st = truceState(t); if (!st) return '';
+  if (t.done) return st.res.met ? '<span class="tc ok">Within TRUCE</span>' : `<span class="tc bad">TRUCE missed by ${dur(st.res.over)}</span>`;
+  if (!st.started) return '';
+  if (st.pause) return `<span class="tc paused">${ICON.pause}Paused until ${esc(shortWhen(pauseEnd(st.pause)))}</span>`;
+  const k = t.ackAt ? 'res' : 'resp', x = st[k];
+  if (x.left > 0) return `<span class="tc ${x.left < x.target * 0.25 ? 'warn' : 'ok'}">${k === 'resp' ? 'Respond' : 'Resolve'} in ${dur(x.left)}</span>`;
+  return `<span class="tc bad">${k === 'resp' ? 'Response' : 'TRUCE'} overdue ${dur(-x.left)}</span>`;
+}
+const needsAck = t => !t.done && t.truce && !t.ackAt && Date.now() >= t.truce.start;
+function ackTask(id) {
+  const t = S.tasks.get(id); if (!t || t.done || t.ackAt) return;
+  const n = {...t, ackAt: Date.now()};
+  store.save('tasks', n);
+  const st = truceState(n);
+  toast(`On it · responded in ${dur(st.resp.elapsed)}${st.resp.met ? ' · within TRUCE' : ` · ${dur(st.resp.over)} past the response target`}`, () => { const c = S.tasks.get(id); if (c) store.save('tasks', {...c, ackAt: null}); });
+  if (dlg.open && S.edit.id === id) renderTruceBox();
+}
+function pauseTruce(id, reason, note, ms) {
+  const t = S.tasks.get(id); if (!t || t.done || activePause(t)) return false;
+  const now = Date.now();
+  store.save('tasks', {...t, pauses: [...(t.pauses || []), {from: now, until: now + ms, reason, note}].slice(-20)});
+  toast(`TRUCE paused until ${shortWhen(now + ms)}. It resumes by itself.`);
+  return true;
+}
+function resumeTruce(id) {
+  const t = S.tasks.get(id), p = t && activePause(t); if (!p) return;
+  const now = Date.now();
+  store.save('tasks', {...t, pauses: t.pauses.map(x => x === p ? {...x, endedAt: now} : x)});
+  toast('TRUCE resumed');
+}
+function pauseFormHTML() {
+  return `<div class="tr-pause form">
+    <div class="field"><label class="fl" for="pzReason">Reason</label><select class="inp" id="pzReason">${PAUSE_REASONS.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
+    <div class="field"><label class="fl" for="pzNote">Details <span class="fl-opt">(needed for Other)</span></label><input class="inp" id="pzNote" maxlength="120" placeholder="e.g. waiting on Sam’s reply"></div>
+    <div class="field"><label class="fl" for="pzFor">Resume after</label><select class="inp" id="pzFor">${PAUSE_FOR.map(([v, l]) => `<option value="${v}"${v === HOUR ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+    <div class="btn-row"><button type="button" class="btn-ghost" data-tr="cancel">Cancel</button><button type="button" class="btn-primary" data-tr="dopause">Pause TRUCE</button></div>
+  </div>`;
+}
+function renderTruceBox() {
+  const el = $('#editTruce'), t = S.tasks.get(S.edit.id), st = t && truceState(t);
+  if (!st) { el.hidden = true; el.innerHTML = ''; return; }
+  el.hidden = false;
+  const line = (k, label) => {
+    const x = st[k], learned = k === 'resp' ? st.learnedResp : st.learnedRes;
+    let s;
+    if (x.final) s = x.met ? `<b class="ok">Met</b> in ${dur(x.elapsed)}` : `<b class="bad">Missed</b> by ${dur(x.over)}`;
+    else if (!st.started) s = `Starts ${esc(fmtDateTime(t.truce.start))}`;
+    else if (st.pause) s = `Paused · ${dur(Math.max(0, x.left))} left`;
+    else s = x.left > 0 ? `${dur(x.left)} left · due ${esc(shortWhen(Date.now() + x.left))}` : `<b class="bad">Overdue</b> by ${dur(-x.left)}`;
+    return `<div class="tr-row"><span class="tr-k">${label}</span><span class="tr-t">${dur(x.target)}${learned > 0 ? `<small>incl. +${dur(learned)} learned</small>` : ''}</span><span class="tr-s">${s}</span></div>`;
+  };
+  const pz = st.pause, past = (t.pauses || []).filter(p => p !== pz);
+  el.innerHTML = `<div class="tr-head"><span class="fl">TRUCE</span><small>Time to Resolve Under Current Energy</small>${needsAck(t) ? '<button type="button" class="ack" data-tr="ack">On it</button>' : ''}</div>
+    ${line('resp', 'Response')}${line('res', 'Resolution')}
+    ${t.done ? '' : pz
+      ? `<div class="tr-pause on"><span>${ICON.pause}Paused: <b>${esc(pauseLabel(pz))}</b> · resumes ${esc(shortWhen(pauseEnd(pz)))}</span><button type="button" class="mini" data-tr="resume">Resume now</button></div>`
+      : S.edit.pausing ? pauseFormHTML() : '<div><button type="button" class="link-btn" data-tr="pause">Pause TRUCE…</button></div>'}
+    ${past.length ? `<details class="tr-hist"><summary>${past.length} earlier pause${past.length > 1 ? 's' : ''} · ${dur(past.reduce((a, p) => a + Math.min(pauseEnd(p), Date.now()) - p.from, 0))} in total</summary><ul>${past.map(p => `<li>${esc(pauseLabel(p))} · ${dur(Math.min(pauseEnd(p), Date.now()) - p.from)} · ${esc(fmtDateTime(p.from))}</li>`).join('')}</ul></details>` : ''}`;
+}
+$('#editTruce').addEventListener('click', e => {
+  const b = e.target.closest('[data-tr]'); if (!b) return;
+  const id = S.edit.id, a = b.dataset.tr;
+  if (a === 'ack') return ackTask(id);
+  if (a === 'pause') { S.edit.pausing = true; renderTruceBox(); $('#pzReason').focus(); return; }
+  if (a === 'cancel') { S.edit.pausing = false; return renderTruceBox(); }
+  if (a === 'resume') { resumeTruce(id); return renderTruceBox(); }
+  if (a === 'dopause') {
+    const reason = $('#pzReason').value, note = $('#pzNote').value.trim().replace(/\s+/g, ' ').slice(0, 120), ms = Number($('#pzFor').value);
+    if (reason === 'other' && !note) { $('#pzNote').focus(); return toast('Say briefly why you’re pausing.'); }
+    if (pauseTruce(id, reason, note, ms)) { S.edit.pausing = false; renderTruceBox(); }
+  }
+});
+
+/* TRUCE targets in Settings */
+function fmtDurInput(ms) {
+  if (ms % DAY === 0) return ms / DAY + 'd';
+  if (ms % HOUR === 0) return ms / HOUR + 'h';
+  if (ms >= HOUR && (ms / HOUR) % 0.5 === 0) return ms / HOUR + 'h';
+  return Math.round(ms / MIN) + 'm';
+}
+function parseDurInput(s) {
+  const m = /^\s*(\d+(?:\.\d+)?)\s*(m|min|mins|minutes?|h|hr|hrs|hours?|d|days?|w|wk|weeks?)?\s*$/i.exec(s || '');
+  if (!m) return null;
+  const n = Number(m[1]), u = (m[2] || 'h').toLowerCase()[0];
+  return Math.round(n * (u === 'm' ? MIN : u === 'd' ? DAY : u === 'w' ? 7 * DAY : HOUR));
+}
+function renderTrucePanel() {
+  const L = truceLearned();
+  const learnedTxt = v => v >= MIN ? `<small>+${dur(v)} learned</small>` : '<small>no misses learned</small>';
+  $('#trucePanel').innerHTML = `<p class="note">Time to Resolve Under Current Energy. Each ticket gets a response target (tap <b>On it</b>) and a resolution target from its priority. Changes apply to new tickets. Missing a target adds a little time for the next ticket at that priority, and being on time takes it away again.</p>
+    <form class="tr-table" id="truceForm" autocomplete="off">
+      <span class="th">Priority</span><span class="th">Response</span><span class="th">Resolution</span>
+      ${[1, 2, 3, 4, 5].map(p => { const b = truceBase(p); return `<span class="tr-p"><span class="pbadge p${p}">P${p}</span><span>${PRIO[p]}</span></span>
+        <label><span class="sr">P${p} response target</span><input class="inp tr-in" name="resp-${p}" value="${fmtDurInput(b.resp)}" inputmode="text">${learnedTxt(L[p].resp.v)}</label>
+        <label><span class="sr">P${p} resolution target</span><input class="inp tr-in" name="res-${p}" value="${fmtDurInput(b.res)}" inputmode="text">${learnedTxt(L[p].res.v)}</label>`; }).join('')}
+      <div class="btn-row tr-actions"><button type="submit" class="btn-ghost">Save targets</button><button type="button" class="link-btn" data-truce-reset>Reset to defaults</button></div>
+    </form>
+    <p class="note muted">Use m, h, d or w, like 15m, 4h, 3d or 1w.</p>`;
+}
+$('#trucePanel').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target, targets = {};
+  for (let p = 1; p <= 5; p++) {
+    const resp = parseDurInput(f.elements['resp-' + p].value), res = parseDurInput(f.elements['res-' + p].value);
+    if (!resp || !res) return toast(`P${p}: use a time like 30m, 4h or 2d.`);
+    if (resp < 5 * MIN || res > 90 * DAY) return toast(`P${p}: keep targets between 5 minutes and 90 days.`);
+    if (resp > res) return toast(`P${p}: the response target can’t be longer than the resolution target.`);
+    targets[p] = {resp, res};
+  }
+  store.save('settings', {id: 'truce', targets});
+  renderTrucePanel(); toast('TRUCE targets saved. They apply to new tickets.');
+});
+$('#trucePanel').addEventListener('click', e => {
+  if (!e.target.closest('[data-truce-reset]')) return;
+  store.save('settings', {id: 'truce', targets: {}});
+  renderTrucePanel(); toast('TRUCE targets reset to the defaults.');
+});
+
+/* TRUCE in the Done tab */
+function truceInsightsHTML(items) {
+  const withT = items.filter(t => t.truce);
+  if (!withT.length) return '<p class="note muted">TRUCE counts from tickets opened since it was turned on. Close a few and their response and resolution times show up here.</p>';
+  const rate = (k, arr) => { const f = arr.map(t => truceState(t)[k]).filter(x => x.final); return {met: f.filter(x => x.met).length, n: f.length}; };
+  const pct = r => r.n ? Math.round(100 * r.met / r.n) + '%' : '–';
+  const R = rate('resp', withT), Z = rate('res', withT), L = truceLearned();
+  const paused = withT.flatMap(t => t.pauses || []);
+  const reasons = {};
+  for (const p of paused) { const k = pauseLabel(p).split(':')[0]; reasons[k] = (reasons[k] || 0) + 1; }
+  const topReason = Object.entries(reasons).sort((a, b) => b[1] - a[1])[0];
+  const rows = [1, 2, 3, 4, 5].map(p => { const a = withT.filter(t => prioOf(t) === p); if (!a.length) return ''; const r = rate('resp', a), z = rate('res', a);
+    const lr = L[p].res.v, lq = L[p].resp.v;
+    return `<div class="trp-row"><span class="pbadge p${p}">P${p}</span><span>Response <b>${r.met}/${r.n}</b></span><span>Resolution <b>${z.met}/${z.n}</b></span><span class="trp-l">${lq >= MIN || lr >= MIN ? `+${dur(lq)} / +${dur(lr)} learned` : 'nothing learned'}</span></div>`; }).join('');
+  return `<div class="tiles tiles-3">
+      <div class="tile"><b>${pct(R)}</b><span>responses on time (${R.met}/${R.n})</span></div>
+      <div class="tile"><b>${pct(Z)}</b><span>resolved within TRUCE (${Z.met}/${Z.n})</span></div>
+      <div class="tile"><b>${paused.length}</b><span>pause${paused.length === 1 ? '' : 's'}${topReason ? ` · mostly “${esc(topReason[0])}”` : ''}</span></div>
+    </div>
+    <div class="trp">${rows}</div>`;
+}
+
+/* keep countdowns fresh without touching what you're typing */
+setInterval(() => {
+  if (document.hidden || !S.loaded || GUEST) return;
+  if (S.view !== 'done' && !sw && $('#snoozePop').hidden) render();
+  if (dlg.open && !S.edit.pausing) renderTruceBox();
+}, 60000);
+
+/* ---------- celebrations: a reward schedule that thins out ---------- */
+// Continuous reinforcement while a habit forms, then unpredictable (variable-ratio) rewards,
+// which keep a behaviour going longer than rewards you can count on. N = 66 closes per step,
+// after the median 66 days to habit automaticity in Lally et al. (2010). Milestones and a cleared
+// desk always celebrate; every close still gets the DONE stamp.
+const CELEBRATE_N = 66;
+const FANFARE_STEPS = [1, 0.6, 0.5, 0.4, 0.3, 0.2];
+const fanfareChance = n => FANFARE_STEPS[Math.min(FANFARE_STEPS.length - 1, Math.floor(Math.max(0, n - 1) / CELEBRATE_N))];
+const MILESTONES = new Set([1, 10, 25, 50, 66, 100, 150, 200, 250, 300, 365, 400, 500, 750, 1000, 1500, 2000]);
+const PRAISE = ['Nice work', 'Ticket closed', 'Done and dusted', 'Sorted', 'Knocked it out', 'One less', 'Good going', 'Cleared'];
+const celebrateOn = () => lsGet('td.celebrate', true) !== false;
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const closedCount = () => { let n = 0; for (const t of S.tasks.values()) if (t.done) n++; return n; };
+function checkRect(id) {
+  const el = view.querySelector(`[data-id="${CSS.escape(id)}"] .check`); if (!el) return null;
+  const r = el.getBoundingClientRect();
+  return r.right < 0 || r.left > innerWidth || r.bottom < 0 || r.top > innerHeight ? null : r;   // swiped off-screen: burst from the middle
+}
+function celebrateToast() { if (!S.lastFanfare) return; const t = $('#toast'); void t.offsetWidth; t.classList.add('celebrate'); }
+// Called after a ticket is saved as done. Returns the toast text.
+function celebrateClose(t, rect) {
+  const n = closedCount(), today = todayKey();
+  const doneToday = all().filter(x => x.done && x.doneAt && doneKey(x) === today).length;
+  const openNow = all().filter(x => !x.done && x.day <= today).length;
+  const st = truceState(t);
+  const streak = streaks(new Set(all().filter(x => x.done && x.doneAt).map(doneKey))).cur;
+  const milestone = MILESTONES.has(n), cleared = openNow === 0 && doneToday > 0;
+  const big = celebrateOn() && (milestone || cleared || Math.random() < fanfareChance(n));
+  const bits = [];
+  if (milestone && n > 1) bits.push(`your ${ordinal(n)} ticket`);
+  else if (cleared) bits.push('desk clear for today');
+  if (st && st.res.final) bits.push(st.res.met ? 'within TRUCE' : `${dur(st.res.over)} past TRUCE`);
+  if (big && doneToday > 1) bits.push(`${doneToday} today`);
+  if (big && streak > 1) bits.push(`${streak}-day streak`);
+  if (big) fanfare(rect, milestone || cleared ? (milestone && n > 1 ? `${ordinal(n)} ticket!` : cleared ? 'Desk clear!' : '') : '');
+  S.lastFanfare = big;
+  return big ? `${PRAISE[Math.floor(Math.random() * PRAISE.length)]} · ${bits.join(' · ') || t.name}` : `Done: ${t.name}${bits.length ? ' · ' + bits.join(' · ') : ''}`;
+}
+function fanfare(rect, banner) {
+  try { if (navigator.vibrate) navigator.vibrate(banner ? [15, 40, 25, 40, 35] : [12, 30, 18]); } catch {}
+  if (reducedMotion()) return;
+  const ox = rect ? rect.left + rect.width / 2 : innerWidth / 2, oy = rect ? rect.top + rect.height / 2 : innerHeight / 3;
+  const cv = document.createElement('canvas'); cv.className = 'fx'; cv.setAttribute('aria-hidden', 'true');
+  const dpr = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  document.body.appendChild(cv);
+  const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+  const css = getComputedStyle(document.documentElement);
+  const colors = ['--p1', '--p2', '--p3', '--p4', '--p5', '--good'].map(v => css.getPropertyValue(v).trim() || '#16957a');
+  const style = banner ? 'both' : ['confetti', 'sparks', 'both'][Math.floor(Math.random() * 3)];   // variety keeps it from going stale
+  const count = banner ? 150 : 70, parts = [];
+  if (style !== 'sparks') for (let i = 0; i < count; i++) {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2, sp = 5 + Math.random() * 7;
+    parts.push({x: ox, y: oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 0.24, w: 5 + Math.random() * 5, h: 3 + Math.random() * 4, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, c: colors[i % colors.length], life: 70 + Math.random() * 45, rect: true});
+  }
+  if (style !== 'confetti') for (let i = 0; i < count * 0.6; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 5;
+    parts.push({x: ox, y: oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 0.05, w: 1.6 + Math.random() * 2.4, c: colors[(i * 7) % colors.length], life: 40 + Math.random() * 30});
+  }
+  let f = 0, ring = style === 'confetti' ? 1 : 0, last = performance.now();
+  const stop = setTimeout(() => cv.remove(), 4000);
+  const tick = now => {
+    const dt = Math.min(3, (now - last) / 16.7); last = now; f += dt;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    if (ring < 1) { ring += 0.035 * dt; ctx.globalAlpha = Math.max(0, 1 - ring); ctx.strokeStyle = colors[5]; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(ox, oy, 14 + ring * 80, 0, Math.PI * 2); ctx.stroke(); }
+    let alive = 0;
+    for (const p of parts) {
+      if (f > p.life) continue; alive++;
+      p.vy += p.g * dt; p.vx *= Math.pow(0.985, dt); p.x += p.vx * dt; p.y += p.vy * dt; if (p.rect) p.rot += p.vr * dt;
+      ctx.globalAlpha = Math.max(0, 1 - f / p.life); ctx.fillStyle = p.c;
+      if (p.rect) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore(); }
+      else { ctx.beginPath(); ctx.arc(p.x, p.y, p.w, 0, Math.PI * 2); ctx.fill(); }
+    }
+    if (alive || ring < 1) requestAnimationFrame(tick); else { clearTimeout(stop); cv.remove(); }
+  };
+  requestAnimationFrame(tick);
+  if (banner) {
+    const b = document.createElement('div'); b.className = 'fx-banner'; b.textContent = banner; b.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(b); setTimeout(() => b.remove(), 2000);
+  }
+}
+function renderFunPanel() {
+  const n = closedCount(), on = celebrateOn(), pct = Math.round(fanfareChance(n + 1) * 100);
+  $('#funPanel').innerHTML = `<label class="tgl"><input type="checkbox" id="funTgl"${on ? ' checked' : ''}><span><b>Celebrate closed tickets</b><small>Confetti, a buzz on phones that support it, and a word of praise</small></span></label>
+    <p class="note muted">The first ${CELEBRATE_N} closes always celebrate. After that it’s less predictable: 60%, then 50%, 40% and 30% of closes, settling at 20%. Rewards you can’t predict keep a habit going longer than ones you can. Milestones and clearing your desk always celebrate. You’ve closed ${n} ticket${n === 1 ? '' : 's'}, so the next close has a ${pct}% chance.</p>`;
+}
+$('#funPanel').addEventListener('change', e => { if (e.target.id === 'funTgl') { lsSet('td.celebrate', e.target.checked); renderFunPanel(); } });
+
 /* ---------- navigation ---------- */
 function setView(v) {
   if (!VIEWS.includes(v)) v = 'day';
@@ -2328,6 +2709,7 @@ view.addEventListener('click', e => {
   if (el.dataset.act === 'toggle') return toggleDone(id);
   if (el.dataset.act === 'edit') return openEdit(id);
   if (el.dataset.act === 'del') return deleteTask(id);
+  if (el.dataset.act === 'ack') return ackTask(id);
   if (el.dataset.act === 'snooze') return !$('#snoozePop').hidden && snoozeFor === id ? closeSnooze() : openSnooze(id, el);
   if (el.dataset.act === 'drop') return deleteTask(id);
   if (el.dataset.act === 'keep') { const t = S.tasks.get(id); if (t) { store.save('tasks', {...t, keptOn: todayKey()}); toast(`Kept. You’ll be asked again in ${STALE_DAYS} days if it’s still open.`); } return; }

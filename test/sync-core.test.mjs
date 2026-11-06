@@ -66,6 +66,13 @@ test('sync against Postgres', { skip }, async t => {
     assert.deepEqual(other.json.changes.map(c => c.body.name).sort(), ['Budget', 'Fix login']);
   });
 
+  await t.test('settings items sync like any other', async () => {
+    const r = await call(KEY_A, { changes: [{ kind: 'settings', id: 'truce', updatedAt: 150, body: { id: 'truce', targets: { 1: { resp: 600000, res: 7200000 } } } }] });
+    assert.equal(r.status, 200);
+    assert.equal(r.json.changes.find(c => c.kind === 'settings').body.targets[1].res, 7200000);
+    cursorA = r.json.cursor;
+  });
+
   await t.test('desks are isolated', async () => {
     const r = await call(KEY_B, { since: 0 });
     assert.equal(r.status, 200);
