@@ -33,7 +33,7 @@
   --shadow:0 1px 0 rgba(20,24,40,.04),0 2px 6px rgba(20,24,40,.06);
   --shadow-lg:0 14px 44px rgba(16,20,36,.2);
   --notch:var(--bg);
-  --hl0:color-mix(in srgb,var(--fg) 7%,var(--surface)); --hl1:color-mix(in srgb,var(--good) 30%,var(--surface)); --hl2:color-mix(in srgb,var(--good) 52%,var(--surface)); --hl3:color-mix(in srgb,var(--good) 76%,var(--surface)); --hl4:var(--good);
+  --hl0:color-mix(in srgb,var(--fg) 7%,var(--surface)); --hl1:color-mix(in srgb,var(--good) 30%,var(--surface)); --hl2:color-mix(in srgb,var(--good) 52%,var(--surface)); --hl3:color-mix(in srgb,var(--good) 76%,var(--surface)); --hl4:var(--good); --hidle:color-mix(in srgb,var(--p2) 70%,var(--surface)); --hidle-bg:color-mix(in srgb,var(--p2) 16%,var(--surface));
   --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
   --f-body:"Schibsted Grotesk","Helvetica Neue","Segoe UI",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
@@ -430,29 +430,20 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 .ins{gap:14px;align-content:start}
 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 @media (max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:400px){.tile b{font-size:21px}}
 .tile{display:grid;gap:5px;align-content:start;padding:12px;border-radius:12px;background:var(--surface-2);min-width:0}
-.tile b{font:800 26px/1 var(--f-display);letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tile b{font:800 26px/1 var(--f-display);font-size:clamp(18px,5.6vw,26px);letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tile span{font-size:12.5px;color:var(--fg-2)}
-.heat-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px 12px;flex-wrap:wrap}
-.heat-legend{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;color:var(--fg-3)}
-.heat-legend .hc{width:12px;height:12px;display:inline-block;aspect-ratio:auto;border-radius:3px}
-.hcal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 20px}
-@media (max-width:560px){.hcal{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}}
-.hcal-month{display:grid;gap:7px;align-content:start;min-width:0;container-type:inline-size}
-.hcal-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
-.hcal-head b{font:700 14px/1 var(--f-display);letter-spacing:-.01em}
-.hcal-head span{font:500 11px/1 var(--f-mono);color:var(--fg-3);white-space:nowrap}
-.hcal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
-.hcal-wd{font:500 9.5px/1 var(--f-mono);color:var(--fg-3);text-align:center;padding-bottom:3px}
-.hc{display:grid;place-items:center;aspect-ratio:1;border-radius:28%;min-width:0}
-.hc i{font:500 10px/1 var(--f-mono);font-size:clamp(8px,4.2cqi,11px);font-style:normal;color:var(--fg-3);font-variant-numeric:tabular-nums}
-.hc.l2 i{color:var(--fg-2)}
-.hc.l3 i,.hc.l4 i{color:var(--on-solid)}
-.hc.l0{background:var(--hl0)}.hc.l1{background:var(--hl1)}.hc.l2{background:var(--hl2)}.hc.l3{background:var(--hl3)}.hc.l4{background:var(--hl4)}
-.hc.lf{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
-.hc.lf i{color:var(--line-strong)}
-.hc.today{box-shadow:inset 0 0 0 2px var(--ink)}
+.heat-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:12px;color:var(--fg-2)}
+.heat-legend>span{display:inline-flex;align-items:center;gap:4px}
+.heat-legend .hc{width:12px;height:12px;display:inline-block;aspect-ratio:auto}
+.heat{display:grid;grid-template-columns:auto repeat(var(--weeks),minmax(0,1fr));gap:3px;max-width:calc(var(--weeks) * 23px + 36px)}
+.hm{grid-row:1;font:500 10px/1 var(--f-mono);color:var(--fg-3);white-space:nowrap;padding-bottom:4px;min-width:0}
+.hw{grid-column:1;align-self:center;font:500 9.5px/1 var(--f-mono);color:var(--fg-3);padding-right:5px}
+.hc{display:block;aspect-ratio:1;border-radius:3px;min-width:0}
+.hc.l0{background:transparent;box-shadow:inset 0 0 0 1px var(--line-strong)}
+.hc.idle{background:repeating-linear-gradient(135deg,var(--hidle) 0 1.6px,transparent 1.6px 4.2px),var(--hidle-bg)}
+.hc.l1{background:var(--hl1)}.hc.l2{background:var(--hl2)}.hc.l3{background:var(--hl3)}.hc.l4{background:var(--hl4)}
+.hc.today{box-shadow:inset 0 0 0 2px var(--fg)}
 .habits{list-style:none;margin:0;padding:0;display:grid;gap:14px}
 .habit{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 14px;align-items:center}
 .habit.paused{opacity:.55}
@@ -1219,7 +1210,7 @@ function renderDoneResults() {
 }
 
 /* ---------- Done: insights, habits, aging ---------- */
-const HEAT_MONTHS = 6, HABIT_DAYS = 28;
+const HABIT_DAYS = 28;
 const fmtDateTime = ms => new Date(ms).toLocaleString(undefined, {weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'});
 const localStamp = ms => { const d = new Date(ms); return `${keyOf(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 const timeToDone = t => t.done && t.doneAt && t.createdAt && t.doneAt >= t.createdAt ? t.doneAt - t.createdAt : null;
@@ -1240,28 +1231,54 @@ function streaks(days) {          // days: Set of YYYY-MM-DD with at least one c
   for (const k of [...days].sort()) { run = prev && diffDays(prev, k) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = k; }
   return {cur, best};
 }
-// Completion calendar: one small month calendar per month, newest first.
-function heatHTML(counts) {
-  const today = todayKey(), t = parseKey(today);
-  const max = Math.max(1, ...counts.values());
-  const wd = DOW.map(d => `<span class="hcal-wd" aria-hidden="true">${esc(d.slice(0, 1))}</span>`).join('');
-  let html = '', total = 0, active = 0, days = 0;
-  for (let m = 0; m < HEAT_MONTHS; m++) {
-    const first = new Date(t.getFullYear(), t.getMonth() - m, 1), last = new Date(t.getFullYear(), t.getMonth() - m + 1, 0);
-    let cells = '<span class="hcal-pad" aria-hidden="true"></span>'.repeat((first.getDay() + 6) % 7), mTotal = 0, mActive = 0;
-    for (let d = 1; d <= last.getDate(); d++) {
-      const k = keyOf(new Date(first.getFullYear(), first.getMonth(), d));
-      if (k > today) { cells += `<span class="hc lf" aria-hidden="true"><i>${d}</i></span>`; continue; }
-      const n = counts.get(k) || 0, lvl = n ? Math.min(4, Math.ceil(4 * n / max)) : 0;
-      days++; total += n; mTotal += n; if (n) { active++; mActive++; }
-      cells += `<span class="hc l${lvl}${k === today ? ' today' : ''}" data-tt="${esc(fmtShort(k))}: ${n} done"><i>${d}</i></span>`;
-    }
-    const name = first.toLocaleDateString(undefined, {month: 'long', year: 'numeric'});
-    const short = first.toLocaleDateString(undefined, {month: 'short'}) + (first.getFullYear() !== t.getFullYear() ? ' ' + first.getFullYear() : '');
-    html += `<div class="hcal-month" role="img" aria-label="${esc(name)}: ${mTotal} done on ${mActive} days"><div class="hcal-head"><b>${esc(short)}</b><span>${mTotal} done</span></div><div class="hcal-days">${wd}${cells}</div></div>`;
+// Activity grid: columns of 7 days ending today (today is the bottom-right square, no future days).
+// Each day is one of: nothing on the desk / open tickets but none closed / some closed (green, by count).
+const heatWeeks = () => (innerWidth < 600 ? 15 : 26);
+function heatData(match) {
+  const weeks = heatWeeks(), n = weeks * 7, today = todayKey(), start = addDays(today, -(n - 1));
+  const closed = new Array(n).fill(0), diff = new Array(n + 1).fill(0);
+  for (const t of S.tasks.values()) {
+    if (!match(t)) continue;
+    const done = t.done && t.doneAt, end = done ? doneKey(t) : today;
+    if (done) { const i = diffDays(start, end); if (i >= 0 && i < n) closed[i]++; }
+    if (!done && t.day > today) continue;                       // planned for later: not on the desk yet
+    const from = t.createdAt ? keyOf(new Date(t.createdAt)) : t.day;
+    const i0 = Math.max(0, diffDays(start, from)), i1 = Math.min(n - 1, diffDays(start, end));
+    if (i0 <= i1) { diff[i0]++; diff[i1 + 1]--; }
   }
-  return {html: `<div class="hcal">${html}</div>`, total, active, days};
+  const onDesk = []; let run = 0;
+  for (let i = 0; i < n; i++) onDesk.push(run += diff[i]);
+  return {weeks, n, start, today, closed, onDesk};
 }
+function heatHTML(match) {
+  const H = heatData(match), max = Math.max(1, ...H.closed);
+  let cells = '', lastLab = -9, closedDays = 0, idleDays = 0, total = 0;
+  for (let r = 1; r < 7; r += 2) cells += `<span class="hw" style="grid-row:${r + 2}">${esc(fmt(addDays(H.start, r), {weekday: 'short'}))}</span>`;
+  // Month labels sit over the column holding the 1st; the first column is labelled only if no month starts soon after.
+  const monthAt = w => { for (let r = 0; r < 7; r++) { const d = addDays(H.start, w * 7 + r); if (parseKey(d).getDate() === 1) return fmt(d, {month: 'short'}); } return ''; };
+  for (let w = 0; w < H.weeks; w++) {
+    let lab = monthAt(w);
+    if (!lab && w === 0 && !monthAt(1) && !monthAt(2)) lab = fmt(H.start, {month: 'short'});
+    if (lab && w - lastLab >= 3) {
+      // near the right edge, right-align the label across the last two columns so it never spills out of the grid
+      const edge = w >= H.weeks - 2;
+      cells += `<span class="hm" style="${edge ? `grid-column:${H.weeks} / span 2;text-align:right` : `grid-column:${w + 2}`}">${esc(lab)}</span>`; lastLab = w;
+    }
+    for (let r = 0; r < 7; r++) {
+      const i = w * 7 + r, d = addDays(H.start, i), c = H.closed[i], open = Math.max(0, H.onDesk[i] - c);
+      let cls, tip;
+      if (c) { cls = 'l' + Math.min(4, Math.ceil(4 * c / max)); closedDays++; total += c; tip = `${c} closed${open ? ` · ${open} still open` : ''}`; }
+      else if (H.onDesk[i]) { cls = 'idle'; idleDays++; tip = `${H.onDesk[i]} open, none closed`; }
+      else { cls = 'l0'; tip = 'no tickets'; }
+      cells += `<span class="hc ${cls}${d === H.today ? ' today' : ''}" style="grid-column:${w + 2};grid-row:${r + 2}" data-tt="${esc(fmtShort(d))}${d === H.today ? ' (today)' : ''}: ${tip}"></span>`;
+    }
+  }
+  const s = n => (n === 1 ? '' : 's');
+  const summary = `${total} closed on ${closedDays} day${s(closedDays)} · ${idleDays} day${s(idleDays)} with open tickets but nothing closed`;
+  return {weeks: H.weeks, summary, html: `<div class="heat" style="--weeks:${H.weeks}" role="img" aria-label="Last ${H.weeks} weeks: ${summary}">${cells}</div>`};
+}
+let heatShownWeeks = 0;
+addEventListener('resize', () => { if (S.view === 'done' && $('#insights') && heatWeeks() !== heatShownWeeks) renderDoneResults(); });
 // Which due days of a recurring task were met. A completion counts for the latest due day on or before it.
 function habitDoneDue(r) {
   const s = new Set();
@@ -1323,7 +1340,7 @@ function renderInsights(items, matched, filtered) {
   const span = f.range === 'all' ? (first ? diffDays(first, today) + 1 : 1) : Number(f.range);
   const avg = items.length / Math.max(1, span);
   const med = median(items.map(timeToDone).filter(x => x != null));
-  const heat = heatHTML(counts);
+  const heat = heatHTML(doneFilter().match); heatShownWeeks = heat.weeks;
   const rules = [...S.rules.values()].sort((a, b) => a.paused - b.paused || a.name.localeCompare(b.name));
   const openN = all().filter(t => !t.done).length;
   const rangeTxt = f.range === 'all' ? 'all time' : `last ${f.range} days`;
@@ -1334,10 +1351,10 @@ function renderInsights(items, matched, filtered) {
         <div class="tile"><b>${cur}</b><span>day streak${best > cur ? ` · best ${best}` : ''}</span></div>
         <div class="tile"><b>${med == null ? '–' : dur(med)}</b><span>median time to done</span></div>
       </div>
-      <div class="heat-head"><h3 class="sec-h">Last 6 months${filtered ? '<span class="hint">matching your filters</span>' : ''}</h3>
-        <span class="heat-legend" aria-hidden="true">Less <i class="hc l0"></i><i class="hc l1"></i><i class="hc l2"></i><i class="hc l3"></i><i class="hc l4"></i> More</span></div>
+      <h3 class="sec-h">Last ${heat.weeks} weeks<span class="hint">${filtered ? 'matching your filters · ' : ''}today is the last square</span></h3>
       ${heat.html}
-      <p class="note muted">${heat.total} done on ${heat.active} of the last ${heat.days} days.${filtered ? '' : ' Search for a habit (say “gym”) to see just that one.'}</p>
+      <div class="heat-legend"><span><i class="hc l0"></i>No tickets</span><span><i class="hc idle"></i>Open, none closed</span><span>Closed <i class="hc l1"></i><i class="hc l2"></i><i class="hc l3"></i><i class="hc l4"></i> more</span></div>
+      <p class="note muted">${heat.summary}.${filtered ? '' : ' Search for a habit (say “gym”) to see just that one.'}</p>
     </section>
     <section class="panel ins" aria-label="Habits"><h3 class="sec-h">Habits<span class="hint">your recurring tasks, last 4 weeks</span></h3>
       ${rules.length ? `<ul class="habits">${rules.map(habitRowHTML).join('')}</ul>
