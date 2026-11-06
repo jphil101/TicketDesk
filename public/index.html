@@ -33,6 +33,7 @@
   --shadow:0 1px 0 rgba(20,24,40,.04),0 2px 6px rgba(20,24,40,.06);
   --shadow-lg:0 14px 44px rgba(16,20,36,.2);
   --notch:var(--bg);
+  --hl0:color-mix(in srgb,var(--fg) 7%,var(--surface)); --hl1:color-mix(in srgb,var(--good) 30%,var(--surface)); --hl2:color-mix(in srgb,var(--good) 52%,var(--surface)); --hl3:color-mix(in srgb,var(--good) 76%,var(--surface)); --hl4:var(--good);
   --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
   --f-body:"Schibsted Grotesk","Helvetica Neue","Segoe UI",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
@@ -424,6 +425,63 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 #guestBody{display:grid;gap:18px;min-width:0}
 .guest-hero{gap:10px}
 
+/* Done insights */
+.insights{display:grid;gap:14px;min-width:0}
+.ins{gap:14px;align-content:start}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{display:grid;gap:5px;align-content:start;padding:12px;border-radius:12px;background:var(--surface-2);min-width:0}
+.tile b{font:800 26px/1 var(--f-display);letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tile span{font-size:12.5px;color:var(--fg-2)}
+.heat-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px 12px;flex-wrap:wrap}
+.heat-legend{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;color:var(--fg-3)}
+.heat-legend .hc{width:11px;height:11px;display:inline-block;aspect-ratio:auto}
+.heat-scroll{overflow-x:auto;min-width:0}
+.heat{display:grid;grid-template-columns:26px repeat(26,minmax(9px,1fr));gap:3px;max-width:680px;min-width:290px}
+.hm{grid-row:1;font:500 10px/1 var(--f-mono);color:var(--fg-3);white-space:nowrap;padding-bottom:3px}
+.hw{grid-column:1;align-self:center;font:500 9.5px/1 var(--f-mono);color:var(--fg-3)}
+.hc{display:block;aspect-ratio:1;border-radius:3px;min-width:0}
+.hc.l0{background:var(--hl0)}.hc.l1{background:var(--hl1)}.hc.l2{background:var(--hl2)}.hc.l3{background:var(--hl3)}.hc.l4{background:var(--hl4)}
+.hc.lf{background:transparent}
+.hc.today{box-shadow:0 0 0 1.5px var(--ink)}
+.habits{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.habit{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 14px;align-items:center}
+.habit.paused{opacity:.55}
+.h-name{display:grid;gap:1px;min-width:0}
+.h-name b{font-weight:600;overflow-wrap:anywhere}
+.h-name small{font-size:12px;color:var(--fg-3)}
+.h-strip{display:grid;grid-template-columns:repeat(28,10px);gap:2px}
+.hs{display:block;width:10px;height:10px;border-radius:2px;position:relative}
+.hs.done{background:var(--good)}
+.hs.missed{background:color-mix(in srgb,var(--danger) 32%,var(--surface))}
+.hs.pending{box-shadow:inset 0 0 0 1.5px var(--good)}
+.hs.off::after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--line-strong)}
+.h-stats{font-size:12.5px;color:var(--fg-2);white-space:nowrap;text-align:right}
+.h-stats b{font:700 16px/1 var(--f-display);color:var(--fg)}
+.habit-legend .hs{display:inline-block}
+@media (max-width:640px){.habit{grid-template-columns:minmax(0,1fr) auto}.h-strip{grid-column:1/-1;grid-row:2;grid-template-columns:repeat(28,minmax(0,1fr))}.hs{width:auto;height:auto;aspect-ratio:1}.hs.off::after{inset:35%}}
+.ins-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+@media (max-width:720px){.ins-row{grid-template-columns:minmax(0,1fr)}}
+.bars{display:grid;gap:8px}
+.ab-row{display:grid;grid-template-columns:96px minmax(0,1fr) auto;align-items:center;gap:10px;font-size:13px}
+.ab-l{color:var(--fg-2)}
+.ab-track{height:10px}
+.ab-bar{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--fg-3)}
+.ab-row.old .ab-bar{background:var(--p1)}
+.ab-bar.pc{background:var(--pc)}
+.ab-n{font:600 12.5px/1 var(--f-mono);text-align:right;white-space:nowrap;min-width:28px;font-variant-numeric:tabular-nums}
+.oldest{display:grid;gap:6px}
+.old-item{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--surface-2);font-size:14px;min-width:0}
+.old-item:hover{background:color-mix(in srgb,var(--fg) 6%,var(--surface-2))}
+.old-item:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.old-item .pbadge{margin:0}
+.oi-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.oi-age{font:500 12px/1 var(--f-mono);color:var(--fg-3);white-space:nowrap}
+.tt{position:fixed;z-index:70;pointer-events:none;background:var(--ink);color:var(--on-ink);font-size:12.5px;line-height:1.3;padding:6px 9px;border-radius:8px;box-shadow:var(--shadow-lg);white-space:nowrap}
+.ticket-times{margin:-4px 0 0;display:flex;flex-wrap:wrap;gap:3px 14px;font-size:13px;color:var(--fg-2)}
+.ticket-times:empty{display:none}
+#doneExport svg{flex:none}
+
 /* Snooze & stale */
 .snz{width:36px;height:36px;margin-left:-6px;border:0;background:none;border-radius:8px;display:grid;place-items:center;color:var(--fg-3);opacity:0;padding:0}
 .snz:hover{color:var(--fg);background:var(--surface-2)}
@@ -539,6 +597,7 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
       <button type="button" class="icon-btn" id="editClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <p class="rule-note" id="editRuleNote" hidden></p>
+    <p class="ticket-times" id="editTimes"></p>
     <div class="field">
       <label class="fl" for="editName">Task</label>
       <input class="inp" id="editName" type="text" maxlength="200" required>
@@ -604,6 +663,7 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="pop" id="snoozePop" role="menu" aria-label="Snooze until" hidden></div>
+<div class="pop" id="exportPop" role="menu" aria-label="Export" hidden></div>
 
 <script>
 (() => {
@@ -632,6 +692,7 @@ const ICON = {
   trash: svg(17, '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>', 1.8),
   note: svg(12, '<path d="M5 4h14v16H5zM8.5 9h7M8.5 13h7M8.5 17h4"/>'),
   search: svg(17, '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>'),
+  download: svg(16, '<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/>'),
   snooze: svg(17, '<circle cx="12" cy="13" r="7.5"/><path d="M12 9.5V13l2.5 2M5 3.5 2.5 6M19 3.5 21.5 6"/>', 1.9),
   repeat: svg(12, '<path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>', 2.2),
 };
@@ -955,7 +1016,7 @@ function ticketHTML(t, ctx = {}) {
   const carriedDays = ctx.carried ? Math.max(1, diffDays(t.carriedFrom || t.day, today)) : 0;
   const stale = !t.done && carriedDays >= STALE_DAYS && !(t.keptOn && diffDays(t.keptOn, today) < STALE_DAYS);
   if (ctx.carried) meta.push(`<span class="age${carriedDays >= 3 ? ' stale' : ''}">${carriedDays} day${carriedDays > 1 ? 's' : ''}</span> ` + esc(`from ${fmtShort(t.carriedFrom || t.day)}`));
-  if (t.done && ctx.doneTime) meta.push(esc(`done ${fmtTime(t.doneAt)}`));
+  if (t.done && ctx.doneTime) meta.push(esc(`done ${fmtTime(t.doneAt)}${timeToDone(t) != null ? ' · took ' + dur(timeToDone(t)) : ''}`));
   const f = S.fresh && S.fresh.id === t.id && Date.now() - S.fresh.at < 700 ? ' fresh-' + S.fresh.kind : '';
   return `<li class="task p${p}${t.done ? ' done' : ''}${ctx.carried ? ' carried' : ''}${stale ? ' stale-q' : ''}${f}" data-id="${esc(t.id)}">
   <div class="swipe-bg" aria-hidden="true"><span class="sb-done">${t.done ? 'Reopen' : 'Done'}</span><span class="sb-del">Delete</span></div>
@@ -1113,31 +1174,209 @@ function monthHTML() {
 function doneShell() {
   const f = S.doneF;
   const ranges = [['7', '7 days'], ['30', '30 days'], ['90', '90 days'], ['all', 'All time']];
-  return `<div class="vhead"><h2 class="vtitle"><span class="eyebrow">Completed</span><span class="big" id="doneTitle">Done</span></h2></div>
+  return `<div class="vhead"><h2 class="vtitle"><span class="eyebrow">Completed</span><span class="big" id="doneTitle">Done</span></h2><button type="button" class="btn-ghost" id="doneExport" aria-haspopup="menu">${ICON.download}Export</button></div>
   <div class="filters">
-    <div class="search">${ICON.search}<label for="doneSearch" class="sr">Search completed tasks</label><input id="doneSearch" type="search" placeholder="Search completed tasks or T-numbers" value="${esc(f.q)}"></div>
+    <div class="search">${ICON.search}<label for="doneSearch" class="sr">Search completed tasks</label><input id="doneSearch" type="search" placeholder="Search, e.g. gym, T-012" value="${esc(f.q)}"></div>
     <div class="filter-row" role="group" aria-label="Filters">
       ${ranges.map(([v, l]) => `<button type="button" class="fchip" data-range="${v}" aria-pressed="${f.range === v}">${l}</button>`).join('')}
       <span class="divider" aria-hidden="true"></span>
       ${[1,2,3,4,5].map(p => `<button type="button" class="fchip pc p${p}" data-prio="${p}" aria-pressed="${f.prios.has(p)}" title="${PRIO[p]}"><i></i>P${p}</button>`).join('')}
     </div>
   </div>
+  <div id="insights" class="insights"></div>
   <div id="doneResults" class="daylist"></div>`;
 }
-function renderDoneResults() {
+// The Done tab's filters: date range, priorities, search text.
+function doneFilter() {
   const f = S.doneF, q = f.q.trim().toLowerCase();
   const cutoff = f.range === 'all' ? '' : addDays(todayKey(), -(Number(f.range) - 1));
-  const items = all().filter(t => t.done && (!cutoff || doneKey(t) >= cutoff) && (!f.prios.size || f.prios.has(prioOf(t))) &&
-    (!q || t.name.toLowerCase().includes(q) || (t.notes || '').toLowerCase().includes(q) || tid(t).toLowerCase().includes(q))).sort(byDoneDesc);
+  const match = t => (!f.prios.size || f.prios.has(prioOf(t))) &&
+    (!q || t.name.toLowerCase().includes(q) || (t.notes || '').toLowerCase().includes(q) || tid(t).toLowerCase().includes(q));
+  return {cutoff, match, filtered: !!(q || f.prios.size)};
+}
+function renderDoneResults() {
+  const f = S.doneF, {cutoff, match, filtered} = doneFilter();
+  const matched = all().filter(t => t.done && t.doneAt && match(t));
+  const items = matched.filter(t => !cutoff || doneKey(t) >= cutoff).sort(byDoneDesc);
   const groups = new Map();
   for (const t of items) { const k = doneKey(t); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(t); }
   const rangeTxt = f.range === 'all' ? 'all time' : `the last ${f.range} days`;
-  const filtered = q || f.prios.size;
   $('#doneTitle').innerHTML = `${items.length} <em>done</em>`;
+  renderInsights(items, matched, filtered);
   $('#doneResults').innerHTML = items.length
-    ? `<p class="note">${items.length} completed in ${rangeTxt}${filtered ? ' matching your filters' : ''}. Tick a ticket to reopen it.</p>` +
+    ? `<h3 class="sec-h">Completed tickets <span class="n">${items.length}</span><span class="hint">${rangeTxt}${filtered ? ', matching your filters' : ''} · tick one to reopen it</span></h3>` +
       [...groups].map(([k, arr]) => `<div class="dayblock"><button type="button" class="dayhead" data-goto="${k}" data-goto-view="day"><span class="dh-name">${esc(fmtShort(k))}</span><span class="dh-meta">${relLabel(k)} · ${arr.length} done</span></button>${list(arr, {doneTime: true})}</div>`).join('')
     : emptyHTML(filtered ? 'No matches' : 'Nothing completed yet', filtered ? 'Try a wider date range or clear the priority filters.' : 'Tasks you tick off collect here, grouped by the day you finished them.', filtered ? '<p><button type="button" class="btn-ghost" data-clear-filters>Clear filters</button></p>' : '');
+}
+
+/* ---------- Done: insights, habits, aging ---------- */
+const HEAT_WEEKS = 26, HABIT_DAYS = 28;
+const fmtDateTime = ms => new Date(ms).toLocaleString(undefined, {weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'});
+const localStamp = ms => { const d = new Date(ms); return `${keyOf(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const timeToDone = t => t.done && t.doneAt && t.createdAt && t.doneAt >= t.createdAt ? t.doneAt - t.createdAt : null;
+const median = a => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+function dur(ms) {
+  const m = Math.max(0, Math.round(ms / 60000));
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} h${h < 10 && m % 60 ? ' ' + (m % 60) + ' min' : ''}`;
+  const d = Math.floor(h / 24), rh = h % 24;
+  return `${d} d${d < 10 && rh ? ' ' + rh + ' h' : ''}`;
+}
+function streaks(days) {          // days: Set of YYYY-MM-DD with at least one completion
+  const today = todayKey();
+  let cur = 0;
+  for (let d = days.has(today) ? today : addDays(today, -1); days.has(d); d = addDays(d, -1)) cur++;
+  let best = 0, run = 0, prev = null;
+  for (const k of [...days].sort()) { run = prev && diffDays(prev, k) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = k; }
+  return {cur, best};
+}
+function heatHTML(counts) {
+  const today = todayKey(), start = addDays(mondayOf(today), -7 * (HEAT_WEEKS - 1));
+  const max = Math.max(1, ...counts.values());
+  let cells = '', active = 0, total = 0, days = 0, lastLabelCol = -9;
+  ['Mon', '', 'Wed', '', 'Fri', '', ''].forEach((l, i) => { if (l) cells += `<span class="hw" style="grid-row:${i + 2}">${fmt(addDays('2024-01-01', i), {weekday: 'short'})}</span>`; });
+  for (let w = 0; w < HEAT_WEEKS; w++) {
+    const mon = addDays(start, 7 * w);
+    const newMonth = w === 0 || parseKey(mon).getMonth() !== parseKey(addDays(mon, -7)).getMonth();
+    if (newMonth && w - lastLabelCol >= 4 && w <= HEAT_WEEKS - 3) { cells += `<span class="hm" style="grid-column:${w + 2} / span 4">${fmt(mon, {month: 'short'})}</span>`; lastLabelCol = w; }
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(mon, i);
+      if (d > today) { cells += `<span class="hc lf" style="grid-column:${w + 2};grid-row:${i + 2}"></span>`; continue; }
+      const n = counts.get(d) || 0, lvl = n ? Math.min(4, Math.ceil(4 * n / max)) : 0;
+      days++; total += n; if (n) active++;
+      cells += `<span class="hc l${lvl}${d === today ? ' today' : ''}" style="grid-column:${w + 2};grid-row:${i + 2}" data-tt="${esc(fmtShort(d))}: ${n} done"></span>`;
+    }
+  }
+  return {html: `<div class="heat" role="img" aria-label="${total} completed on ${active} of the last ${days} days">${cells}</div>`, total, active, days};
+}
+// Which due days of a recurring task were met. A completion counts for the latest due day on or before it.
+function habitDoneDue(r) {
+  const s = new Set();
+  for (const t of S.tasks.values()) if (t.ruleId === r.id && t.done && t.doneAt) {
+    for (let k = doneKey(t), n = 0; n < 62 && k >= r.start; n++, k = addDays(k, -1)) if (isDue(r, k)) { s.add(k); break; }
+  }
+  return s;
+}
+function habitStatus(r, d, doneDue, today) {
+  if (d < r.start || d > today || !isDue(r, d)) return 'off';
+  return doneDue.has(d) ? 'done' : d === today ? 'pending' : 'missed';
+}
+function habitRowHTML(r) {
+  const today = todayKey(), doneDue = habitDoneDue(r), from = addDays(today, -(HABIT_DAYS - 1));
+  let cells = '', doneN = 0, missN = 0;
+  const LABEL = {done: 'done', missed: 'missed', pending: 'due today', off: 'not due'};
+  for (let n = 0; n < HABIT_DAYS; n++) {
+    const d = addDays(from, n), st = habitStatus(r, d, doneDue, today);
+    if (st === 'done') doneN++; else if (st === 'missed') missN++;
+    cells += `<span class="hs ${st}" data-tt="${esc(fmtShort(d))}: ${LABEL[st]}"></span>`;
+  }
+  let streak = 0;
+  for (let k = today, n = 0; n < 800 && k >= r.start; n++, k = addDays(k, -1)) {
+    if (!isDue(r, k)) continue;
+    if (doneDue.has(k)) streak++; else if (k !== today) break;
+  }
+  const rate = doneN + missN ? Math.round(100 * doneN / (doneN + missN)) : null;
+  return `<li class="habit p${prio(r.urgency, r.impact)}${r.paused ? ' paused' : ''}"><div class="h-name"><b>${esc(r.name)}</b><small>${esc(freqText(r))}${r.paused ? ' · paused' : ''}</small></div>
+    <div class="h-strip" role="img" aria-label="Last ${HABIT_DAYS} days: ${doneN} done, ${missN} missed">${cells}</div>
+    <div class="h-stats"><b>${streak}</b> in a row${rate == null ? '' : ` · ${rate}%`}</div></li>`;
+}
+function agingHTML() {
+  const now = Date.now(), open = all().filter(t => !t.done);
+  if (!open.length) return '<p class="note muted">No open tickets, so nothing is aging.</p>';
+  const B = [['Under a day', 1], ['1–3 days', 4], ['4–7 days', 8], ['1–2 weeks', 15], ['Over 2 weeks', Infinity]];
+  const counts = B.map(() => 0);
+  for (const t of open) { const age = (now - (t.createdAt || now)) / 864e5; counts[B.findIndex(([, lim]) => age < lim)]++; }
+  const max = Math.max(1, ...counts);
+  const bars = B.map(([l], i) => `<div class="ab-row${i === B.length - 1 && counts[i] ? ' old' : ''}"><span class="ab-l">${l}</span><span class="ab-track"><span class="ab-bar" style="width:${counts[i] ? Math.max(4, counts[i] / max * 100) : 0}%"></span></span><b class="ab-n">${counts[i]}</b></div>`).join('');
+  const oldest = open.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).slice(0, 3);
+  return `<div class="bars" role="img" aria-label="Open tickets by age: ${B.map(([l], i) => `${l} ${counts[i]}`).join(', ')}">${bars}</div>
+    <h4 class="sub-h">Oldest open</h4>
+    <div class="oldest">${oldest.map(t => { const p = prioOf(t); return `<button type="button" class="old-item" data-open-id="${esc(t.id)}"><span class="pbadge p${p}">P${p}</span><span class="oi-name">${esc(t.name)}</span><span class="oi-age">open ${dur(now - (t.createdAt || now))}</span></button>`; }).join('')}</div>`;
+}
+function ttdHTML(items) {
+  const rows = [1, 2, 3, 4, 5].map(p => { const v = items.filter(t => prioOf(t) === p).map(timeToDone).filter(x => x != null); return {p, n: v.length, med: median(v)}; }).filter(r => r.n);
+  if (!rows.length) return '<p class="note muted">Finish a few tickets to see how long each priority takes.</p>';
+  const max = Math.max(1, ...rows.map(r => r.med));
+  return `<div class="bars" role="img" aria-label="Median time to done: ${rows.map(r => `P${r.p} ${dur(r.med)}`).join(', ')}">${rows.map(r => `<div class="ab-row p${r.p}"><span class="ab-l">P${r.p} ${PRIO[r.p]}</span><span class="ab-track"><span class="ab-bar pc" style="width:${Math.max(3, r.med / max * 100)}%"></span></span><b class="ab-n" data-tt="${r.n} ticket${r.n > 1 ? 's' : ''}">${dur(r.med)}</b></div>`).join('')}</div>
+    <p class="note muted">From opening a ticket to ticking it off, in this date range.</p>`;
+}
+function renderInsights(items, matched, filtered) {
+  const el = $('#insights'); if (!el) return;
+  const f = S.doneF, today = todayKey();
+  const counts = new Map();
+  for (const t of matched) { const k = doneKey(t); counts.set(k, (counts.get(k) || 0) + 1); }
+  const {cur, best} = streaks(new Set(counts.keys()));
+  const first = [...counts.keys()].sort()[0];
+  const span = f.range === 'all' ? (first ? diffDays(first, today) + 1 : 1) : Number(f.range);
+  const avg = items.length / Math.max(1, span);
+  const med = median(items.map(timeToDone).filter(x => x != null));
+  const heat = heatHTML(counts);
+  const rules = [...S.rules.values()].sort((a, b) => a.paused - b.paused || a.name.localeCompare(b.name));
+  const openN = all().filter(t => !t.done).length;
+  const rangeTxt = f.range === 'all' ? 'all time' : `last ${f.range} days`;
+  el.innerHTML = `<section class="panel ins" aria-label="Completion summary">
+      <div class="tiles">
+        <div class="tile"><b>${items.length}</b><span>done · ${rangeTxt}</span></div>
+        <div class="tile"><b>${avg >= 10 ? Math.round(avg) : avg.toFixed(1)}</b><span>per day on average</span></div>
+        <div class="tile"><b>${cur}</b><span>day streak${best > cur ? ` · best ${best}` : ''}</span></div>
+        <div class="tile"><b>${med == null ? '–' : dur(med)}</b><span>median time to done</span></div>
+      </div>
+      <div class="heat-head"><h3 class="sec-h">Last 26 weeks${filtered ? '<span class="hint">matching your filters</span>' : ''}</h3>
+        <span class="heat-legend" aria-hidden="true">Less <i class="hc l0"></i><i class="hc l1"></i><i class="hc l2"></i><i class="hc l3"></i><i class="hc l4"></i> More</span></div>
+      <div class="heat-scroll">${heat.html}</div>
+      <p class="note muted">${heat.total} done on ${heat.active} of the last ${heat.days} days.${filtered ? '' : ' Search for a habit (say “gym”) to see just that one.'}</p>
+    </section>
+    <section class="panel ins" aria-label="Habits"><h3 class="sec-h">Habits<span class="hint">your recurring tasks, last 4 weeks</span></h3>
+      ${rules.length ? `<ul class="habits">${rules.map(habitRowHTML).join('')}</ul>
+        <div class="legend habit-legend"><span><i class="hs done"></i>Done</span><span><i class="hs missed"></i>Missed</span><span><i class="hs pending"></i>Due today</span><span><i class="hs off"></i>Not due</span></div>`
+      : '<p class="note">Turn something you repeat into a habit: set it up under Recurring tasks and it shows here with streaks and a completion rate. <button type="button" class="link-btn" data-open-recur>Set one up</button></p>'}
+    </section>
+    <div class="ins-row">
+      <section class="panel ins" aria-label="Aging open tickets"><h3 class="sec-h">Aging open tickets <span class="n">${openN}</span><span class="hint">time since opened</span></h3>${agingHTML()}</section>
+      <section class="panel ins" aria-label="Time to done"><h3 class="sec-h">Time to done<span class="hint">median by priority</span></h3>${ttdHTML(items)}</section>
+    </div>`;
+}
+
+/* ---------- Done: export ---------- */
+const toCsv = rows => '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+function exportCompleted() {
+  const {cutoff, match} = doneFilter();
+  const items = all().filter(t => t.done && t.doneAt && match(t) && (!cutoff || doneKey(t) >= cutoff)).sort((a, b) => a.doneAt - b.doneAt);
+  const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes']];
+  for (const t of items) {
+    const r = t.ruleId && S.rules.get(t.ruleId), ttd = timeToDone(t), p = prioOf(t);
+    rows.push([tid(t), t.name, `P${p} ${PRIO[p]}`, LEVEL[t.urgency], LEVEL[t.impact], t.createdAt ? localStamp(t.createdAt) : '', localStamp(t.doneAt),
+      ttd == null ? '' : (ttd / 36e5).toFixed(1), t.day, t.carriedFrom || '', r ? `${r.name} (${freqText(r)})` : t.ruleId ? 'yes' : '', t.fromGuest ? 'yes' : '', t.notes || '']);
+  }
+  if (!items.length) return toast('Nothing to export with these filters.');
+  saveFile(`ticket-desk-completed-${todayKey()}.csv`, toCsv(rows), 'text/csv');
+}
+function exportDaily() {
+  const {cutoff, match} = doneFilter(), today = todayKey();
+  const done = all().filter(t => t.done && t.doneAt && match(t));
+  const from = cutoff || done.map(doneKey).sort()[0] || today;
+  const rules = [...S.rules.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const dd = rules.map(habitDoneDue);
+  const byDay = new Map();
+  for (const t of done) { const k = doneKey(t); if (!byDay.has(k)) byDay.set(k, [0, 0, 0, 0, 0, 0]); byDay.get(k)[prioOf(t)]++; }
+  const rows = [['Date', 'Weekday', 'Done', 'P1', 'P2', 'P3', 'P4', 'P5', ...rules.map(r => `Habit: ${r.name}`)]];
+  for (let d = from; d <= today; d = addDays(d, 1)) {
+    const c = byDay.get(d) || [0, 0, 0, 0, 0, 0];
+    rows.push([d, fmt(d, {weekday: 'short'}), c.slice(1).reduce((a, b) => a + b, 0), c[1], c[2], c[3], c[4], c[5],
+      ...rules.map((r, i) => { const st = habitStatus(r, d, dd[i], today); return st === 'done' ? 1 : st === 'missed' ? 0 : ''; })]);
+  }
+  saveFile(`ticket-desk-daily-${todayKey()}.csv`, toCsv(rows), 'text/csv');
+}
+function openExportMenu(btn) {
+  const pop = $('#exportPop');
+  pop.innerHTML = `<button type="button" role="menuitem" data-exp="completed"><span>Completed tickets</span><small>CSV · current filters</small></button>
+    <button type="button" role="menuitem" data-exp="daily"><span>Daily totals &amp; habits</span><small>CSV · one row per day</small></button>`;
+  pop.hidden = false;
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  pop.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + 'px';
+  pop.style.top = (r.bottom + 6 + h > innerHeight - 8 ? Math.max(8, r.top - h - 6) : r.bottom + 6) + 'px';
+  pop.querySelector('button').focus({preventScroll: true});
 }
 
 /* ---------- Recurring drawer ---------- */
@@ -1353,6 +1592,11 @@ function openEdit(id) {
   const r = t.ruleId && S.rules.get(t.ruleId), note = $('#editRuleNote');
   note.hidden = !t.ruleId;
   if (t.ruleId) note.innerHTML = `${ICON.repeat}<span>${r ? esc(freqText(r)) + '. ' : ''}Changes here apply to this ticket only. Edit the schedule under Recurring tasks.</span>`;
+  const times = [];
+  if (t.createdAt) times.push(`Opened ${fmtDateTime(t.createdAt)}${t.fromGuest ? (t.requestedAt ? `, requested ${fmtDateTime(t.requestedAt)}` : ' from a guest request') : t.ruleId ? ' (recurring)' : ''}`);
+  if (t.done && t.doneAt) times.push(`Done ${fmtDateTime(t.doneAt)}${timeToDone(t) != null ? ` · took ${dur(timeToDone(t))}` : ''}`);
+  else if (t.createdAt) times.push(`Open for ${dur(Date.now() - t.createdAt)}`);
+  $('#editTimes').innerHTML = times.map(x => `<span>${esc(x)}</span>`).join('');
   $('#editControls').innerHTML = controlsHTML('edit', t.urgency, t.impact, '');
   dlg.showModal();
 }
@@ -1524,12 +1768,13 @@ function saveFile(filename, text, type) {
 }
 const csvCell = v => { const s = v == null ? '' : String(v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
 $('#expCsv').addEventListener('click', () => {
-  const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Day', 'Status', 'Done at', 'Created', 'Repeats', 'Notes']];
+  const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Status', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes']];
   for (const t of all().sort((a, b) => (a.seq || 0) - (b.seq || 0))) {
-    const r = t.ruleId && S.rules.get(t.ruleId);
-    rows.push([tid(t), t.name, `P${prioOf(t)} ${PRIO[prioOf(t)]}`, LEVEL[t.urgency], LEVEL[t.impact], t.day, t.done ? 'Done' : 'Open', t.doneAt ? new Date(t.doneAt).toISOString() : '', t.createdAt ? new Date(t.createdAt).toISOString() : '', r ? freqText(r) : '', t.notes || '']);
+    const r = t.ruleId && S.rules.get(t.ruleId), ttd = timeToDone(t), p = prioOf(t);
+    rows.push([tid(t), t.name, `P${p} ${PRIO[p]}`, LEVEL[t.urgency], LEVEL[t.impact], t.done ? 'Done' : 'Open', t.createdAt ? localStamp(t.createdAt) : '', t.doneAt ? localStamp(t.doneAt) : '',
+      ttd == null ? '' : (ttd / 36e5).toFixed(1), t.day, t.carriedFrom || '', r ? `${r.name} (${freqText(r)})` : '', t.fromGuest ? 'yes' : '', t.notes || '']);
   }
-  saveFile(`ticket-desk-${todayKey()}.csv`, '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n'), 'text/csv');
+  saveFile(`ticket-desk-${todayKey()}.csv`, toCsv(rows), 'text/csv');
 });
 $('#expJson').addEventListener('click', () => saveFile(`ticket-desk-backup-${todayKey()}.json`, JSON.stringify({app: 'ticket-desk', version: 1, exportedAt: new Date().toISOString(), tasks: all(), recurring: [...S.rules.values()]}, null, 2), 'application/json'));
 $('#impLabel').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#impFile').click(); } });
@@ -1599,7 +1844,7 @@ function acceptRequest(id) {
   const name = (e ? e.name : r.name).replace(/\s+/g, ' ').trim().slice(0, 200) || r.name;
   const now = Date.now();
   const t = {id: 't' + newId(), seq: nextSeq(), name, urgency: e ? e.u : r.urgency, impact: e ? e.i : r.impact, day: todayKey(), done: false, doneAt: null,
-    notes: r.from ? `Requested by ${r.from}` : 'Requested by a guest', fromGuest: true, createdAt: now, updatedAt: now};
+    notes: r.from ? `Requested by ${r.from}` : 'Requested by a guest', fromGuest: true, requestedAt: r.submittedAt || null, createdAt: now, updatedAt: now};
   S.fresh = {id: t.id, kind: 'add', at: now};
   store.save('tasks', t);
   store.save('requests', {...r, status: 'added', resolvedAt: now, taskId: t.id});
@@ -1996,6 +2241,32 @@ function checkCapture() {
   setTimeout(() => { nameIn.focus(); nameIn.setSelectionRange(nameIn.value.length, nameIn.value.length); }, 50);
   return true;
 }
+
+/* ---------- Done: menus and chart tooltips ---------- */
+$('#exportPop').addEventListener('click', e => {
+  const b = e.target.closest('[data-exp]'); if (!b) return;
+  $('#exportPop').hidden = true;
+  b.dataset.exp === 'daily' ? exportDaily() : exportCompleted();
+});
+document.addEventListener('pointerdown', e => { if (!$('#exportPop').hidden && !e.target.closest('#exportPop,#doneExport')) $('#exportPop').hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#exportPop').hidden) { e.preventDefault(); $('#exportPop').hidden = true; } });
+view.addEventListener('click', e => {
+  const o = e.target.closest('[data-open-id]'); if (o) return openEdit(o.dataset.openId);
+  if (e.target.closest('[data-open-recur]')) return $('#openRecur').click();
+  const x = e.target.closest('#doneExport'); if (x) { if ($('#exportPop').hidden) openExportMenu(x); else $('#exportPop').hidden = true; }
+});
+
+/* small tooltips for charts: hover on desktop, tap on touch */
+const tt = document.createElement('div'); tt.className = 'tt'; tt.hidden = true; tt.setAttribute('role', 'tooltip'); document.body.appendChild(tt);
+function showTT(el) {
+  tt.textContent = el.dataset.tt; tt.hidden = false;
+  const r = el.getBoundingClientRect(), w = tt.offsetWidth, h = tt.offsetHeight;
+  tt.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+  tt.style.top = (r.top - h - 8 < 8 ? r.bottom + 8 : r.top - h - 8) + 'px';
+}
+document.addEventListener('pointerover', e => { if (e.pointerType !== 'mouse') return; const el = e.target.closest('[data-tt]'); if (el) showTT(el); else tt.hidden = true; });
+document.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse') return; const el = e.target.closest('[data-tt]'); if (el) showTT(el); else tt.hidden = true; });
+addEventListener('scroll', () => { tt.hidden = true; }, {passive: true});
 
 /* ---------- navigation ---------- */
 function setView(v) {

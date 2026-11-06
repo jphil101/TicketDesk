@@ -5,6 +5,9 @@ A low-friction personal ticketing app. Type what needs doing, tap **Urgency** an
 - **Day** (main view), **Fortnight** and **Month** breakdowns, plus a **Done** section with search, date range and priority filters
 - **Suggestions** from your past task names while you type. They are only suggestions and are never typed in for you.
 - **Carry over:** at the start of each day, unticked tasks from earlier days move to today. They appear in their own *Carried over* section showing where they came from and how many days they've been carried. Past days note what moved on.
+- **Insights & habit tracking (Done tab):** a completion calendar for the last 26 weeks, day streaks, and a per-habit strip for each recurring task (done / missed, streak, completion rate). Also aging open tickets and median time to done by priority. Searching narrows everything, so "gym" shows just your gym days.
+- **Opened and done times:** every ticket records the exact moment it was opened (when you press Add, or accept a guest request) and when it was done, and shows how long it took.
+- **Export from Done:** *Completed tickets* (one row each, with opened/done times and hours to done) or *Daily totals & habits* (one row per day, with a 1/0 column per habit). Both are CSV and follow the current filters.
 - **Notifications:** a push notification the moment a guest sends a ticket, and a short morning summary (open today, P1/P2 counts, carried over, guest requests waiting). Optional email alerts. All free.
 - **Snooze:** one tap moves a ticket to tomorrow, in 2 days, next week, or a day you pick. Tickets carried 5+ days ask once: *Still relevant? Keep · Snooze · Drop*.
 - **Quick capture:** share text or a link from any Android app into Ticket Desk, or open `/?new=…` from an iOS Shortcut or Siri. Links you share are saved in the ticket's notes.
