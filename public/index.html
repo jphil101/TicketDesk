@@ -430,20 +430,29 @@ textarea.inp{resize:vertical;min-height:72px;font-weight:400}
 .ins{gap:14px;align-content:start}
 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 @media (max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:400px){.tile b{font-size:21px}}
 .tile{display:grid;gap:5px;align-content:start;padding:12px;border-radius:12px;background:var(--surface-2);min-width:0}
 .tile b{font:800 26px/1 var(--f-display);letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .tile span{font-size:12.5px;color:var(--fg-2)}
 .heat-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px 12px;flex-wrap:wrap}
 .heat-legend{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;color:var(--fg-3)}
-.heat-legend .hc{width:11px;height:11px;display:inline-block;aspect-ratio:auto}
-.heat-scroll{overflow-x:auto;min-width:0}
-.heat{display:grid;grid-template-columns:26px repeat(26,minmax(9px,1fr));gap:3px;max-width:680px;min-width:290px}
-.hm{grid-row:1;font:500 10px/1 var(--f-mono);color:var(--fg-3);white-space:nowrap;padding-bottom:3px}
-.hw{grid-column:1;align-self:center;font:500 9.5px/1 var(--f-mono);color:var(--fg-3)}
-.hc{display:block;aspect-ratio:1;border-radius:3px;min-width:0}
+.heat-legend .hc{width:12px;height:12px;display:inline-block;aspect-ratio:auto;border-radius:3px}
+.hcal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 20px}
+@media (max-width:560px){.hcal{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}}
+.hcal-month{display:grid;gap:7px;align-content:start;min-width:0;container-type:inline-size}
+.hcal-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.hcal-head b{font:700 14px/1 var(--f-display);letter-spacing:-.01em}
+.hcal-head span{font:500 11px/1 var(--f-mono);color:var(--fg-3);white-space:nowrap}
+.hcal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.hcal-wd{font:500 9.5px/1 var(--f-mono);color:var(--fg-3);text-align:center;padding-bottom:3px}
+.hc{display:grid;place-items:center;aspect-ratio:1;border-radius:28%;min-width:0}
+.hc i{font:500 10px/1 var(--f-mono);font-size:clamp(8px,4.2cqi,11px);font-style:normal;color:var(--fg-3);font-variant-numeric:tabular-nums}
+.hc.l2 i{color:var(--fg-2)}
+.hc.l3 i,.hc.l4 i{color:var(--on-solid)}
 .hc.l0{background:var(--hl0)}.hc.l1{background:var(--hl1)}.hc.l2{background:var(--hl2)}.hc.l3{background:var(--hl3)}.hc.l4{background:var(--hl4)}
-.hc.lf{background:transparent}
-.hc.today{box-shadow:0 0 0 1.5px var(--ink)}
+.hc.lf{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.hc.lf i{color:var(--line-strong)}
+.hc.today{box-shadow:inset 0 0 0 2px var(--ink)}
 .habits{list-style:none;margin:0;padding:0;display:grid;gap:14px}
 .habit{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 14px;align-items:center}
 .habit.paused{opacity:.55}
@@ -1210,7 +1219,7 @@ function renderDoneResults() {
 }
 
 /* ---------- Done: insights, habits, aging ---------- */
-const HEAT_WEEKS = 26, HABIT_DAYS = 28;
+const HEAT_MONTHS = 6, HABIT_DAYS = 28;
 const fmtDateTime = ms => new Date(ms).toLocaleString(undefined, {weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'});
 const localStamp = ms => { const d = new Date(ms); return `${keyOf(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 const timeToDone = t => t.done && t.doneAt && t.createdAt && t.doneAt >= t.createdAt ? t.doneAt - t.createdAt : null;
@@ -1231,24 +1240,27 @@ function streaks(days) {          // days: Set of YYYY-MM-DD with at least one c
   for (const k of [...days].sort()) { run = prev && diffDays(prev, k) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = k; }
   return {cur, best};
 }
+// Completion calendar: one small month calendar per month, newest first.
 function heatHTML(counts) {
-  const today = todayKey(), start = addDays(mondayOf(today), -7 * (HEAT_WEEKS - 1));
+  const today = todayKey(), t = parseKey(today);
   const max = Math.max(1, ...counts.values());
-  let cells = '', active = 0, total = 0, days = 0, lastLabelCol = -9;
-  ['Mon', '', 'Wed', '', 'Fri', '', ''].forEach((l, i) => { if (l) cells += `<span class="hw" style="grid-row:${i + 2}">${fmt(addDays('2024-01-01', i), {weekday: 'short'})}</span>`; });
-  for (let w = 0; w < HEAT_WEEKS; w++) {
-    const mon = addDays(start, 7 * w);
-    const newMonth = w === 0 || parseKey(mon).getMonth() !== parseKey(addDays(mon, -7)).getMonth();
-    if (newMonth && w - lastLabelCol >= 4 && w <= HEAT_WEEKS - 3) { cells += `<span class="hm" style="grid-column:${w + 2} / span 4">${fmt(mon, {month: 'short'})}</span>`; lastLabelCol = w; }
-    for (let i = 0; i < 7; i++) {
-      const d = addDays(mon, i);
-      if (d > today) { cells += `<span class="hc lf" style="grid-column:${w + 2};grid-row:${i + 2}"></span>`; continue; }
-      const n = counts.get(d) || 0, lvl = n ? Math.min(4, Math.ceil(4 * n / max)) : 0;
-      days++; total += n; if (n) active++;
-      cells += `<span class="hc l${lvl}${d === today ? ' today' : ''}" style="grid-column:${w + 2};grid-row:${i + 2}" data-tt="${esc(fmtShort(d))}: ${n} done"></span>`;
+  const wd = DOW.map(d => `<span class="hcal-wd" aria-hidden="true">${esc(d.slice(0, 1))}</span>`).join('');
+  let html = '', total = 0, active = 0, days = 0;
+  for (let m = 0; m < HEAT_MONTHS; m++) {
+    const first = new Date(t.getFullYear(), t.getMonth() - m, 1), last = new Date(t.getFullYear(), t.getMonth() - m + 1, 0);
+    let cells = '<span class="hcal-pad" aria-hidden="true"></span>'.repeat((first.getDay() + 6) % 7), mTotal = 0, mActive = 0;
+    for (let d = 1; d <= last.getDate(); d++) {
+      const k = keyOf(new Date(first.getFullYear(), first.getMonth(), d));
+      if (k > today) { cells += `<span class="hc lf" aria-hidden="true"><i>${d}</i></span>`; continue; }
+      const n = counts.get(k) || 0, lvl = n ? Math.min(4, Math.ceil(4 * n / max)) : 0;
+      days++; total += n; mTotal += n; if (n) { active++; mActive++; }
+      cells += `<span class="hc l${lvl}${k === today ? ' today' : ''}" data-tt="${esc(fmtShort(k))}: ${n} done"><i>${d}</i></span>`;
     }
+    const name = first.toLocaleDateString(undefined, {month: 'long', year: 'numeric'});
+    const short = first.toLocaleDateString(undefined, {month: 'short'}) + (first.getFullYear() !== t.getFullYear() ? ' ' + first.getFullYear() : '');
+    html += `<div class="hcal-month" role="img" aria-label="${esc(name)}: ${mTotal} done on ${mActive} days"><div class="hcal-head"><b>${esc(short)}</b><span>${mTotal} done</span></div><div class="hcal-days">${wd}${cells}</div></div>`;
   }
-  return {html: `<div class="heat" role="img" aria-label="${total} completed on ${active} of the last ${days} days">${cells}</div>`, total, active, days};
+  return {html: `<div class="hcal">${html}</div>`, total, active, days};
 }
 // Which due days of a recurring task were met. A completion counts for the latest due day on or before it.
 function habitDoneDue(r) {
@@ -1322,9 +1334,9 @@ function renderInsights(items, matched, filtered) {
         <div class="tile"><b>${cur}</b><span>day streak${best > cur ? ` · best ${best}` : ''}</span></div>
         <div class="tile"><b>${med == null ? '–' : dur(med)}</b><span>median time to done</span></div>
       </div>
-      <div class="heat-head"><h3 class="sec-h">Last 26 weeks${filtered ? '<span class="hint">matching your filters</span>' : ''}</h3>
+      <div class="heat-head"><h3 class="sec-h">Last 6 months${filtered ? '<span class="hint">matching your filters</span>' : ''}</h3>
         <span class="heat-legend" aria-hidden="true">Less <i class="hc l0"></i><i class="hc l1"></i><i class="hc l2"></i><i class="hc l3"></i><i class="hc l4"></i> More</span></div>
-      <div class="heat-scroll">${heat.html}</div>
+      ${heat.html}
       <p class="note muted">${heat.total} done on ${heat.active} of the last ${heat.days} days.${filtered ? '' : ' Search for a habit (say “gym”) to see just that one.'}</p>
     </section>
     <section class="panel ins" aria-label="Habits"><h3 class="sec-h">Habits<span class="hint">your recurring tasks, last 4 weeks</span></h3>
