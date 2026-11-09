@@ -543,11 +543,24 @@ select.inp{appearance:auto}
 .snz:focus-visible,.task.carried .snz{opacity:1}
 @media (hover:hover){.task:hover .snz{opacity:1}}
 @media (hover:none){.snz{display:none}.task.carried .snz{display:grid;margin-right:6px}}
-.task.stale-q .task-inner{z-index:1}
+.task .task-inner{z-index:1}
 .stale-bar{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;margin-top:-12px;padding:20px 12px 10px 15px;border-radius:0 0 13px 13px;background:color-mix(in srgb,var(--p1) 9%,var(--surface));font-size:13.5px;color:var(--fg-2);box-shadow:var(--shadow)}
 .stale-acts{display:flex;gap:6px;flex-wrap:wrap}
 .mini.danger{color:var(--danger)}
 .pop{position:fixed;z-index:60;min-width:220px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);padding:5px;display:grid}
+.pop .fl{margin:4px 6px 6px}
+.pop #snzReason{width:auto;margin:0 4px 6px;font-size:16px;padding:9px 10px}
+.snz-err{margin:-2px 8px 6px;font-size:12.5px;color:var(--danger)}
+.snz-pick{display:flex;gap:6px;align-items:center;padding:6px 4px 2px;border-top:1px solid var(--line);margin-top:4px}
+.snz-pick .inp{flex:1;min-width:0;padding:7px 9px;font-size:15px}
+.pop{width:min(300px,calc(100vw - 16px))}
+.t-notes{position:relative;margin:-8px 0 0;padding:14px 14px 9px 76px;border-radius:0 0 13px 13px;background:color-mix(in srgb,var(--surface) 70%,transparent);font-size:13px;color:var(--fg-2)}
+.t-notes summary{cursor:pointer;font-weight:600;width:max-content;color:var(--fg-2)}
+.t-notes summary:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+.t-notes ul{margin:6px 0 2px;padding-left:18px;display:grid;gap:5px;list-style:disc}
+.t-notes li span{color:var(--fg)}
+.t-notes li small{display:block;color:var(--fg-3);font-size:11.5px}
+@media (max-width:520px){.t-notes{padding-left:16px}}
 .pop button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:10px;border-radius:8px;font-size:14px;color:var(--fg)}
 .pop button:hover,.pop button:focus-visible{background:var(--surface-2)}
 .pop small{color:var(--fg-3);font:500 12px/1 var(--f-mono)}
@@ -666,6 +679,7 @@ select.inp{appearance:auto}
         <button type="button" class="fchip" data-quick="0">Today</button>
         <button type="button" class="fchip" data-quick="1">Tomorrow</button>
         <button type="button" class="fchip" data-quick="7">In a week</button>
+        <button type="button" class="fchip" id="editSnooze">Snooze with a reason…</button>
       </div>
     </div>
     <div class="field">
@@ -787,7 +801,7 @@ const S = {
   tasks: new Map(), rules: new Map(), requests: new Map(), settings: new Map(),
   view: 'day', anchor: todayKey(), today: todayKey(),
   loaded: false, confirmed: false,
-  add: {u: 2, i: 2}, edit: {id: null, u: 2, i: 2}, gForm: {u: 2, i: 2},
+  add: {u: 2, i: 2}, edit: {id: null, u: 2, i: 2}, gForm: {u: 2, i: 2}, openNotes: new Set(),
   rf: null,
   doneF: {q: '', range: '30', prios: new Set()},
   hist: null,
@@ -1097,6 +1111,7 @@ function ticketHTML(t, ctx = {}) {
     ${t.done ? '' : `<button type="button" class="snz" data-act="snooze" aria-label="Snooze ${tid(t)}" aria-haspopup="menu" title="Snooze">${ICON.snooze}</button>`}
     <button type="button" class="del" data-act="del" aria-label="Delete ${tid(t)}">${ICON.trash}</button>
   </div>
+  ${commentsHTML(t)}
   ${stale ? `<div class="stale-bar"><span>Carried ${carriedDays} days. Still relevant?</span><span class="stale-acts"><button type="button" class="mini" data-act="keep">Keep</button><button type="button" class="mini" data-act="snooze" aria-haspopup="menu">Snooze</button><button type="button" class="mini danger" data-act="drop">Drop</button></span></div>` : ''}
 </li>`;
 }
@@ -1443,14 +1458,14 @@ const toCsv = rows => '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n
 function exportCompleted() {
   const {cutoff, match} = doneFilter();
   const items = all().filter(t => t.done && t.doneAt && match(t) && (!cutoff || doneKey(t) >= cutoff)).sort((a, b) => a.doneAt - b.doneAt);
-  const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes', 'Response target (h)', 'Responded after (h)', 'Response met', 'Resolution target (h)', 'Resolved after excl. pauses (h)', 'Resolution met', 'Paused (h)', 'Pause reasons']];
+  const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes', 'Response target (h)', 'Responded after (h)', 'Response met', 'Resolution target (h)', 'Resolved after excl. pauses (h)', 'Resolution met', 'Paused (h)', 'Pause reasons', 'Comments']];
   const h1 = ms => (ms / 36e5).toFixed(2);
   for (const t of items) {
     const ts = truceState(t), pz = t.pauses || [];
     const tr = ts ? [h1(ts.resp.target), h1(ts.resp.elapsed), ts.resp.met ? 'yes' : 'no', h1(ts.res.target), h1(ts.res.elapsed), ts.res.met ? 'yes' : 'no', h1(pz.reduce((a, p) => a + Math.max(0, Math.min(pauseEnd(p), t.doneAt) - p.from), 0)), pz.map(pauseLabel).join('; ')] : ['', '', '', '', '', '', '', ''];
     const r = t.ruleId && S.rules.get(t.ruleId), ttd = timeToDone(t), p = prioOf(t);
     rows.push([tid(t), t.name, `P${p} ${PRIO[p]}`, LEVEL[t.urgency], LEVEL[t.impact], t.createdAt ? localStamp(t.createdAt) : '', localStamp(t.doneAt),
-      ttd == null ? '' : (ttd / 36e5).toFixed(1), t.day, t.carriedFrom || '', r ? `${r.name} (${freqText(r)})` : t.ruleId ? 'yes' : '', t.fromGuest ? 'yes' : '', t.notes || '', ...tr]);
+      ttd == null ? '' : (ttd / 36e5).toFixed(1), t.day, t.carriedFrom || '', r ? `${r.name} (${freqText(r)})` : t.ruleId ? 'yes' : '', t.fromGuest ? 'yes' : '', t.notes || '', ...tr, commentText(t)]);
   }
   if (!items.length) return toast('Nothing to export with these filters.');
   saveFile(`ticket-desk-completed-${todayKey()}.csv`, toCsv(rows), 'text/csv');
@@ -1692,6 +1707,7 @@ function openEdit(id) {
   $('#editDay').value = t.day;
   $('#editNotes').value = t.notes || '';
   $('#editDone').textContent = t.done ? 'Reopen' : 'Mark done';
+  $('#editSnooze').hidden = !!t.done;
   const r = t.ruleId && S.rules.get(t.ruleId), note = $('#editRuleNote');
   note.hidden = !t.ruleId;
   if (t.ruleId) note.innerHTML = `${ICON.repeat}<span>${r ? esc(freqText(r)) + '. ' : ''}Changes here apply to this ticket only. Edit the schedule under Recurring tasks.</span>`;
@@ -1726,6 +1742,13 @@ $('#editDone').addEventListener('click', () => {
   celebrateToast();
 });
 $('#editDelete').addEventListener('click', () => { const id = S.edit.id; dlg.close(); deleteTask(id); });
+// Snooze from the sheet (the only way on touch screens for tickets that aren't carried over)
+$('#editSnooze').addEventListener('click', () => {
+  const id = S.edit.id; dlg.close();
+  const row = view.querySelector(`[data-id="${CSS.escape(id)}"] .task-inner`);
+  if (row) row.scrollIntoView({block: 'center'});
+  openSnooze(id, row || $('#taskName'));
+});
 $('#editClose').addEventListener('click', () => dlg.close());
 dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 editForm.addEventListener('click', e => { const q = e.target.closest('[data-quick]'); if (q) $('#editDay').value = addDays(todayKey(), Number(q.dataset.quick)); });
@@ -1877,11 +1900,11 @@ function saveFile(filename, text, type) {
 }
 const csvCell = v => { const s = v == null ? '' : String(v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
 $('#expCsv').addEventListener('click', () => {
-  const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Status', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes']];
+  const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Status', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes', 'Comments']];
   for (const t of all().sort((a, b) => (a.seq || 0) - (b.seq || 0))) {
     const r = t.ruleId && S.rules.get(t.ruleId), ttd = timeToDone(t), p = prioOf(t);
     rows.push([tid(t), t.name, `P${p} ${PRIO[p]}`, LEVEL[t.urgency], LEVEL[t.impact], t.done ? 'Done' : 'Open', t.createdAt ? localStamp(t.createdAt) : '', t.doneAt ? localStamp(t.doneAt) : '',
-      ttd == null ? '' : (ttd / 36e5).toFixed(1), t.day, t.carriedFrom || '', r ? `${r.name} (${freqText(r)})` : '', t.fromGuest ? 'yes' : '', t.notes || '']);
+      ttd == null ? '' : (ttd / 36e5).toFixed(1), t.day, t.carriedFrom || '', r ? `${r.name} (${freqText(r)})` : '', t.fromGuest ? 'yes' : '', t.notes || '', commentText(t)]);
   }
   saveFile(`ticket-desk-${todayKey()}.csv`, toCsv(rows), 'text/csv');
 });
@@ -2287,36 +2310,55 @@ $('#notifyPanel').addEventListener('submit', async e => {
   } catch (err) { toast(err.message); }
 });
 
+/* ---------- ticket comments (snooze reasons) ---------- */
+function commentsHTML(t) {
+  const c = t.comments || []; if (!c.length) return '';
+  return `<details class="t-notes"${S.openNotes.has(t.id) ? ' open' : ''} data-notes="${esc(t.id)}"><summary>${c.length} comment${c.length > 1 ? 's' : ''}</summary><ul>${c.map(x =>
+    `<li><span>${esc(x.text)}</span><small>${x.kind === 'snooze' && x.to ? `Snoozed to ${esc(fmtShort(x.to))} · ` : ''}${esc(fmtDateTime(x.at))}</small></li>`).join('')}</ul></details>`;
+}
+const commentText = t => (t.comments || []).map(x => `${localStamp(x.at)} ${x.kind === 'snooze' ? `snoozed to ${x.to}: ` : ''}${x.text}`).join(' | ');
+view.addEventListener('toggle', e => { const d = e.target; if (d.dataset && d.dataset.notes) d.open ? S.openNotes.add(d.dataset.notes) : S.openNotes.delete(d.dataset.notes); }, true);
+
 /* ---------- snooze ---------- */
 const STALE_DAYS = 5;
 let snoozeFor = null;
 const snoozeOptions = () => { const t = todayKey(); return [['Tomorrow', addDays(t, 1)], ['In 2 days', addDays(t, 2)], ['Next week', addDays(mondayOf(t), 7)]]; };
 function openSnooze(id, btn) {
   const pop = $('#snoozePop'); snoozeFor = id;
-  pop.innerHTML = snoozeOptions().map(([l, d]) => `<button type="button" role="menuitem" data-snz="${d}"><span>${l}</span><small>${esc(fmtShort(d))}</small></button>`).join('') +
-    '<button type="button" role="menuitem" data-snz="pick"><span>Pick a day…</span></button>';
+  const tomorrow = addDays(todayKey(), 1);
+  pop.innerHTML = `<label class="fl" for="snzReason">Why are you snoozing this?</label>
+    <input class="inp" id="snzReason" maxlength="200" placeholder="e.g. waiting for the invoice" autocomplete="off">
+    <p class="snz-err" id="snzErr" hidden>Add a short reason first.</p>
+    ${snoozeOptions().map(([l, d]) => `<button type="button" role="menuitem" data-snz="${d}"><span>${l}</span><small>${esc(fmtShort(d))}</small></button>`).join('')}
+    <div class="snz-pick"><label class="sr" for="snzDay">Pick a day</label><input class="inp" type="date" id="snzDay" min="${tomorrow}" value="${addDays(todayKey(), 3)}"><button type="button" class="mini" data-snz="pick">Snooze</button></div>`;
   pop.hidden = false;
   const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
   pop.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + 'px';
   pop.style.top = (r.bottom + 6 + h > innerHeight - 8 ? Math.max(8, r.top - h - 6) : r.bottom + 6) + 'px';
-  pop.querySelector('button').focus({preventScroll: true});
+  $('#snzReason').focus({preventScroll: true});
 }
 function closeSnooze() { $('#snoozePop').hidden = true; snoozeFor = null; }
-function snoozeTask(id, day) {
+// Every snooze needs a reason; it's kept on the ticket as a comment.
+function snoozeTask(id, day, reason) {
   const t = S.tasks.get(id); if (!t) return;
-  store.save('tasks', {...t, day, carriedFrom: null, keptOn: null});
-  toast(`Snoozed ${tid(t)} to ${fmtShort(day)}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, day: t.day, carriedFrom: t.carriedFrom || null, keptOn: t.keptOn || null}); });
+  const comment = {at: Date.now(), kind: 'snooze', to: day, text: reason};
+  store.save('tasks', {...t, day, carriedFrom: null, keptOn: null, comments: [...(t.comments || []), comment].slice(-50)});
+  toast(`Snoozed ${tid(t)} to ${fmtShort(day)}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, day: t.day, carriedFrom: t.carriedFrom || null, keptOn: t.keptOn || null, comments: t.comments || []}); });
 }
 $('#snoozePop').addEventListener('click', e => {
   const b = e.target.closest('[data-snz]'); if (!b) return;
+  const reason = $('#snzReason').value.replace(/\s+/g, ' ').trim();
+  if (!reason) { $('#snzErr').hidden = false; $('#snzReason').focus(); return; }
+  let day = b.dataset.snz;
+  if (day === 'pick') { day = $('#snzDay').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day <= todayKey()) { $('#snzDay').focus(); return toast('Pick a day after today.'); } }
   const id = snoozeFor; closeSnooze();
-  if (b.dataset.snz !== 'pick') return snoozeTask(id, b.dataset.snz);
-  openEdit(id);
-  setTimeout(() => { const d = $('#editDay'); d.focus(); try { if (d.showPicker) d.showPicker(); } catch {} }, 60);
+  snoozeTask(id, day, reason);
 });
+$('#snoozePop').addEventListener('input', e => { if (e.target.id === 'snzReason') $('#snzErr').hidden = true; });
+$('#snoozePop').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'snzReason') { e.preventDefault(); $('#snoozePop [data-snz]').click(); } });
 document.addEventListener('pointerdown', e => { if (!$('#snoozePop').hidden && !e.target.closest('#snoozePop,[data-act="snooze"]')) closeSnooze(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#snoozePop').hidden) { e.preventDefault(); closeSnooze(); } });
-addEventListener('scroll', () => { if (!$('#snoozePop').hidden) closeSnooze(); }, {passive: true});
+addEventListener('scroll', () => { const p = $('#snoozePop'); if (!p.hidden && !p.contains(document.activeElement)) closeSnooze(); }, {passive: true});   // typing (phone keyboard) can scroll
 
 /* ---------- quick capture: share sheet, ?new= links, home-screen shortcut ---------- */
 //   /?new=Call+the+bank&u=3&i=2   /#new=Call%20the%20bank   /?title=…&text=…&url=… (Android share)   /?focus=new
