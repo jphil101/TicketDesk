@@ -1166,7 +1166,7 @@ function ticketHTML(t, ctx = {}) {
   const meta = [];
   const chip = truceChip(t);   // its own item, so a wrapped line never starts with a separator
   if (t.ruleId) { const r = S.rules.get(t.ruleId); meta.push(`<span class="rep">${ICON.repeat}${esc(r ? (r.habit ? 'Habit · ' : '') + freqText(r) : 'Recurring')}</span>`); }
-  meta.push(esc(t.done ? `P${p} · ${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact` : `${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact`));
+  if (t.done) meta.push(`P${p}`);          // urgency and impact live in the ticket sheet; the badge already says the priority
   const today = todayKey();
   const carriedDays = ctx.carried ? Math.max(1, diffDays(t.carriedFrom || t.day, today)) : 0;
   const stale = !t.done && carriedDays >= STALE_DAYS && !(t.keptOn && diffDays(t.keptOn, today) < STALE_DAYS);
@@ -1178,7 +1178,7 @@ function ticketHTML(t, ctx = {}) {
   <div class="task-inner">
     <div class="stub"><button type="button" class="check" data-act="toggle" aria-pressed="${!!t.done}" aria-label="${t.missed ? 'Mark as done after all' : t.done ? 'Reopen' : 'Mark done'}: ${esc(t.name)}">${ICON.check}</button><span class="tid">${tid(t)}</span></div>
     <button type="button" class="task-main" data-act="edit"><span class="task-name">${esc(t.name)}</span><span class="task-meta">${chip}<span class="tm-rest">${meta.join(' · ')}</span>${t.notes ? `<span title="Has notes">${ICON.note}</span>` : ''}</span></button>
-    ${t.done ? `<span class="stamp${t.dropped ? ' off' : ''}" aria-hidden="true">${t.missed ? 'Missed' : t.dropped ? 'Dropped' : 'Done'}</span>` : `<span class="pbadge" title="Priority ${p}: ${PRIO[p]}">P${p}</span>`}
+    ${t.done ? `<span class="stamp${t.dropped ? ' off' : ''}" aria-hidden="true">${t.missed ? 'Missed' : t.dropped ? 'Dropped' : 'Done'}</span>` : `<span class="pbadge" title="Priority ${p} ${PRIO[p]}: ${LEVEL[t.urgency]} urgency, ${LEVEL[t.impact]} impact">P${p}</span>`}
     ${t.done ? '' : `<button type="button" class="snz" data-act="snooze" aria-label="Snooze ${tid(t)}" aria-haspopup="menu" title="Snooze">${ICON.snooze}</button>`}
     <button type="button" class="del" data-act="del" aria-label="Delete ${tid(t)}">${ICON.trash}</button>
   </div>
