@@ -213,7 +213,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
 .task[data-dir="right"] .sb-del,.task[data-dir="left"] .sb-done{visibility:hidden}
 .swipe-bg span{transition:transform .15s}
 .task.armed .swipe-bg span{transform:scale(1.15)}
-.task-inner{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto auto auto auto;align-items:center;background:var(--surface);border-radius:13px;box-shadow:var(--shadow);touch-action:pan-y;min-height:60px;transition:box-shadow .15s}
+.task-inner{position:relative;display:grid;grid-template-columns:62px minmax(0,1fr) auto auto auto;align-items:center;background:var(--surface);border-radius:13px;box-shadow:var(--shadow);touch-action:pan-y;min-height:60px;transition:box-shadow .15s}
 @media (hover:hover){.task-inner:hover{box-shadow:var(--shadow),0 0 0 1px var(--line-strong)}}
 .stub{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px 0;border-right:1.5px dashed color-mix(in srgb,var(--pc) 45%,var(--line-strong));position:relative;border-radius:13px 0 0 13px;background:color-mix(in srgb,var(--pc) 11%,var(--surface))}
 .task.done .stub{background:color-mix(in srgb,var(--good) 8%,var(--surface));border-right-color:var(--line-strong)}
@@ -540,6 +540,17 @@ select.inp{appearance:auto}
 .trash-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .trash-list li{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
 
+.stamp.off{color:var(--fg-3)}
+.task.dropped .check{background:var(--fg-3);border-color:var(--fg-3)}
+.task.dropped .stub{background:var(--surface-2)}
+.dropped-sec{opacity:.85}
+.btn-danger.quiet{color:var(--fg-2)}
+.tr-form{display:grid;gap:12px}
+.wh{border:0;margin:0;padding:0;display:grid;gap:10px;min-width:0}
+.wh-set{display:grid;gap:10px}
+.wh-times{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wh-times .inp{width:auto;padding:8px 10px}
+
 /* Snooze & stale */
 .snz{width:36px;height:36px;margin-left:-6px;border:0;background:none;border-radius:8px;display:grid;place-items:center;color:var(--fg-3);opacity:0;padding:0}
 .snz:hover{color:var(--fg);background:var(--surface-2)}
@@ -691,6 +702,7 @@ select.inp{appearance:auto}
     </div>
     <div class="sheet-foot">
       <button type="button" class="btn-danger" id="editDelete">Delete</button>
+      <button type="button" class="btn-danger quiet" id="editDrop" title="Close it without doing it. It stays in your history.">Drop</button>
       <span class="spacer"></span>
       <button type="button" class="btn-ghost" id="editDone">Mark done</button>
       <button type="submit" class="btn-primary">Save</button>
@@ -753,6 +765,7 @@ const LEVEL_S = ['', 'Low', 'Med', 'High'];
 const PRIO = {1:'Critical', 2:'High', 3:'Medium', 4:'Low', 5:'Planning'};
 const prio = (u, i) => 7 - (u + i);            // ITIL 3×3: H/H→P1 … L/L→P5
 const prioOf = t => prio(t.urgency, t.impact);
+const completed = t => !!(t.done && t.doneAt && !t.dropped);      // finished; dropped and missed tickets are closed but don't count
 const tidN = n => 'T-' + String(n || 0).padStart(3, '0');
 const tid = t => tidN(t.seq);
 const VIEWS = ['day', 'fortnight', 'month', 'done'];
@@ -807,7 +820,7 @@ const S = {
   loaded: false, confirmed: false,
   add: {u: 2, i: 2}, edit: {id: null, u: 2, i: 2}, gForm: {u: 2, i: 2}, openNotes: new Set(),
   rf: null,
-  doneF: {q: '', range: '30', prios: new Set()},
+  doneF: {q: '', range: '30', prios: new Set(), dropped: false},
   hist: null,
   fresh: null,   // {id, kind, at} for entry animations
 };
@@ -865,11 +878,15 @@ function scheduleGen() { clearTimeout(genTimer); genTimer = setTimeout(generate,
 function generate() {
   if (!S.loaded || !S.confirmed) return;
   const today = todayKey();
+  // Habits don't carry over: yesterday's unfinished copy is recorded as missed.
+  const habits = new Set([...S.rules.values()].filter(r => r.habit).map(r => r.id));
+  const missed = [...S.tasks.values()].filter(t => !t.done && t.ruleId && habits.has(t.ruleId) && t.day < today);
+  if (missed.length) { store.saveMany('tasks', missed.map(t => ({...t, done: true, dropped: true, missed: true, doneAt: +parseKey(addDays(t.day, 1)) - 1000, carriedFrom: null}))); return; }
   // Carry over: unfinished tasks from earlier days move to today and remember the day they came from.
   const stale = [...S.tasks.values()].filter(t => !t.done && t.day < today);
   if (stale.length) { store.saveMany('tasks', stale.map(t => ({...t, day: today, carriedFrom: t.carriedFrom || t.day}))); return; }
   // Open tickets from before TRUCE existed start their clocks now.
-  const untimed = [...S.tasks.values()].filter(t => !t.done && !t.truce);
+  const untimed = [...S.tasks.values()].filter(t => !t.done && !t.truce && !t.noTruce);
   if (untimed.length) { const now = Date.now(); store.saveMany('tasks', untimed.map(t => ({...t, truce: truceSnapshot(prioOf(t), truceStartFor(now, t.day))}))); return; }
   for (const x of [...S.trash.values()]) if (Date.now() - x.deletedAt > TRASH_DAYS * 864e5) store.remove('trash', x.id);
   // Reviewed guest requests are kept 30 days so guests can see the outcome, then removed.
@@ -880,13 +897,15 @@ function generate() {
     if (!due) continue;
     const open = [...S.tasks.values()].filter(t => t.ruleId === r.id && !t.done).sort((a, b) => b.day.localeCompare(a.day));
     store.save('rules', {...r, lastGen: due, updatedAt: Date.now()});
-    if (open.length) {
+    if (open.length && !r.habit) {
       if (open[0].day < due) store.save('tasks', {...open[0], day: due, updatedAt: Date.now()});
     } else {
       const id = 'r' + r.id + '-' + due.replace(/-/g, '');
       if (!S.tasks.has(id)) {
         const now = Date.now();
-        store.save('tasks', {id, ruleId: r.id, seq: nextSeq(), name: r.name, urgency: r.urgency, impact: r.impact, day: due, done: false, doneAt: null, notes: '', createdAt: now, updatedAt: now, truce: truceSnapshot(prio(r.urgency, r.impact), truceStartFor(now, due))});
+        // a habit gets a fresh copy each due day and no TRUCE clock
+        store.save('tasks', {id, ruleId: r.id, seq: nextSeq(), name: r.name, urgency: r.urgency, impact: r.impact, day: due, done: false, doneAt: null, notes: '', createdAt: now, updatedAt: now,
+          ...(r.habit ? {noTruce: true} : {truce: truceSnapshot(prio(r.urgency, r.impact), truceStartFor(now, due))})});
       }
     }
   }
@@ -1054,12 +1073,22 @@ function addTask(name, u, i, day, notes = '') {
 }
 function toggleDone(id) {
   const t = S.tasks.get(id); if (!t) return;
+  if (t.missed) {       // "I did do it": a missed habit becomes done on its own day
+    store.save('tasks', {...t, dropped: false, missed: false});
+    return toast(`Marked done for ${fmtShort(doneKey(t))}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, dropped: true, missed: true}); });
+  }
   const done = !t.done, rect = done ? checkRect(id) : null;
   if (done) S.fresh = {id, kind: 'done', at: Date.now()};
-  store.save('tasks', {...t, done, doneAt: done ? Date.now() : null, updatedAt: Date.now()});
+  store.save('tasks', {...t, done, dropped: false, doneAt: done ? Date.now() : null, updatedAt: Date.now()});
   S.lastFanfare = false;
-  toast(done ? celebrateClose(S.tasks.get(id), rect) : `Reopened ${tid(t)}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, done: t.done, doneAt: t.doneAt, updatedAt: Date.now()}); });
+  toast(done ? celebrateClose(S.tasks.get(id), rect) : `Reopened ${tid(t)}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, done: t.done, dropped: !!t.dropped, doneAt: t.doneAt, updatedAt: Date.now()}); });
   celebrateToast();
+}
+// Dropped: closed without being done. It stays in your history and doesn't count as done or as a miss.
+function dropTask(id) {
+  const t = S.tasks.get(id); if (!t || t.done) return;
+  store.save('tasks', {...t, done: true, dropped: true, doneAt: Date.now()});
+  toast(`Dropped ${tid(t)}. It stays in your history.`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, done: false, dropped: false, doneAt: null}); });
 }
 function deleteTask(id) {
   const t = S.tasks.get(id); if (!t) return;
@@ -1115,21 +1144,20 @@ function ticketHTML(t, ctx = {}) {
   const p = prioOf(t);
   const meta = [];
   const chip = truceChip(t);   // its own item, so a wrapped line never starts with a separator
-  if (t.ruleId) { const r = S.rules.get(t.ruleId); meta.push(`<span class="rep">${ICON.repeat}${esc(r ? freqText(r) : 'Recurring')}</span>`); }
+  if (t.ruleId) { const r = S.rules.get(t.ruleId); meta.push(`<span class="rep">${ICON.repeat}${esc(r ? (r.habit ? 'Habit · ' : '') + freqText(r) : 'Recurring')}</span>`); }
   meta.push(esc(t.done ? `P${p} · ${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact` : `${LEVEL_S[t.urgency]} urgency · ${LEVEL_S[t.impact]} impact`));
   const today = todayKey();
   const carriedDays = ctx.carried ? Math.max(1, diffDays(t.carriedFrom || t.day, today)) : 0;
   const stale = !t.done && carriedDays >= STALE_DAYS && !(t.keptOn && diffDays(t.keptOn, today) < STALE_DAYS);
   if (ctx.carried) meta.push(`<span class="age${carriedDays >= 3 ? ' stale' : ''}">${carriedDays} day${carriedDays > 1 ? 's' : ''}</span> ` + esc(`from ${fmtShort(t.carriedFrom || t.day)}`));
-  if (t.done && ctx.doneTime) meta.push(esc(`done ${fmtTime(t.doneAt)}${timeToDone(t) != null ? ' · took ' + dur(timeToDone(t)) : ''}`));
+  if (t.done && ctx.doneTime) meta.push(esc(t.missed ? 'not done that day' : t.dropped ? `dropped ${fmtTime(t.doneAt)}` : `done ${fmtTime(t.doneAt)}${timeToDone(t) != null ? ' · took ' + dur(timeToDone(t)) : ''}`));
   const f = S.fresh && S.fresh.id === t.id && Date.now() - S.fresh.at < 700 ? ' fresh-' + S.fresh.kind : '';
-  return `<li class="task p${p}${t.done ? ' done' : ''}${ctx.carried ? ' carried' : ''}${stale ? ' stale-q' : ''}${f}" data-id="${esc(t.id)}">
-  <div class="swipe-bg" aria-hidden="true"><span class="sb-done">${t.done ? 'Reopen' : 'Done'}</span><span class="sb-del">Delete</span></div>
+  return `<li class="task p${p}${t.done ? ' done' : ''}${t.dropped ? ' dropped' : ''}${ctx.carried ? ' carried' : ''}${stale ? ' stale-q' : ''}${f}" data-id="${esc(t.id)}">
+  <div class="swipe-bg" aria-hidden="true"><span class="sb-done">${t.missed ? 'Done' : t.done ? 'Reopen' : 'Done'}</span><span class="sb-del">Delete</span></div>
   <div class="task-inner">
-    <div class="stub"><button type="button" class="check" data-act="toggle" aria-pressed="${!!t.done}" aria-label="${t.done ? 'Reopen' : 'Mark done'}: ${esc(t.name)}">${ICON.check}</button><span class="tid">${tid(t)}</span></div>
+    <div class="stub"><button type="button" class="check" data-act="toggle" aria-pressed="${!!t.done}" aria-label="${t.missed ? 'Mark as done after all' : t.done ? 'Reopen' : 'Mark done'}: ${esc(t.name)}">${ICON.check}</button><span class="tid">${tid(t)}</span></div>
     <button type="button" class="task-main" data-act="edit"><span class="task-name">${esc(t.name)}</span><span class="task-meta">${chip}<span class="tm-rest">${meta.join(' · ')}</span>${t.notes ? `<span title="Has notes">${ICON.note}</span>` : ''}</span></button>
-    ${needsAck(t) ? `<button type="button" class="ack" data-act="ack" aria-label="On it: acknowledge ${tid(t)}">On it</button>` : ''}
-    ${t.done ? '<span class="stamp" aria-hidden="true">Done</span>' : `<span class="pbadge" title="Priority ${p}: ${PRIO[p]}">P${p}</span>`}
+    ${t.done ? `<span class="stamp${t.dropped ? ' off' : ''}" aria-hidden="true">${t.missed ? 'Missed' : t.dropped ? 'Dropped' : 'Done'}</span>` : `<span class="pbadge" title="Priority ${p}: ${PRIO[p]}">P${p}</span>`}
     ${t.done ? '' : `<button type="button" class="snz" data-act="snooze" aria-label="Snooze ${tid(t)}" aria-haspopup="menu" title="Snooze">${ICON.snooze}</button>`}
     <button type="button" class="del" data-act="del" aria-label="Delete ${tid(t)}">${ICON.trash}</button>
   </div>
@@ -1142,12 +1170,12 @@ const byPrio = (a, b) => prioOf(a) - prioOf(b) || (a.createdAt || 0) - (b.create
 const byDoneDesc = (a, b) => (b.doneAt || 0) - (a.doneAt || 0);
 const all = () => [...S.tasks.values()];
 function dayBuckets(k) {
-  const open = [], done = [];
+  const open = [], done = [], dropped = [];
   for (const t of S.tasks.values()) {
     if (!t.done && t.day === k) open.push(t);
-    else if (t.done && doneKey(t) === k) done.push(t);
+    else if (t.done && doneKey(t) === k) (t.dropped ? dropped : done).push(t);
   }
-  return {open: open.sort(byPrio), done: done.sort(byDoneDesc)};
+  return {open: open.sort(byPrio), done: done.sort(byDoneDesc), dropped: dropped.sort(byDoneDesc)};
 }
 function prioChips(arr) {
   const c = [0, 0, 0, 0, 0, 0]; arr.forEach(t => c[prioOf(t)]++);
@@ -1161,7 +1189,7 @@ const emptyHTML = (title, text, extra = '') => `<div class="empty">${EMPTY_ART}<
 /* ---------- Day view ---------- */
 function dayHTML() {
   const k = S.anchor, today = todayKey(), isToday = k === today;
-  const {open, done} = dayBuckets(k);
+  const {open, done, dropped} = dayBuckets(k);
   const isCarried = t => t.carriedFrom && t.carriedFrom < t.day;
   // On today, also catch anything still sitting on an earlier day (before a first sync has run the move).
   const pending = isToday ? all().filter(t => !t.done && t.day < today) : [];
@@ -1192,6 +1220,7 @@ function dayHTML() {
   if (movedOn) body += `<p class="moved-note">${ICON.right}<span>${movedOn} unfinished task${movedOn > 1 ? 's' : ''} from this day ${movedOn > 1 ? 'were' : 'was'} carried over to today.</span><button type="button" class="link-btn" data-goto="${today}">Go to today</button></p>`;
   body += `<section class="sec"><h3 class="sec-h">${carried.length ? 'New for this day' : 'Open'} <span class="n">${fresh.length}</span></h3>${fresh.length ? list(fresh) : emptyDay(k, isToday, carried.length, done.length)}</section>`;
   if (done.length) body += `<section class="sec"><h3 class="sec-h">Done <span class="n">${done.length}</span></h3>${list(done, {doneTime: true})}</section>`;
+  if (dropped.length) body += `<section class="sec dropped-sec"><h3 class="sec-h">Dropped or missed <span class="n">${dropped.length}</span><span class="hint">kept for the record, not counted as done</span></h3>${list(dropped, {doneTime: true})}</section>`;
 
   return `<div class="hero">
     <div class="hero-top"><h2 class="vtitle"><span class="eyebrow">${isToday ? greeting() + ' · ' : relLabel(k) + ' · '}${fmt(k, {weekday: 'long'})}</span><span class="big">${fmt(k, {day: 'numeric', month: 'long'})}</span></h2>${navHTML('Today', isToday)}</div>
@@ -1261,7 +1290,7 @@ function monthHTML() {
     cells += `<button type="button" class="cell${out ? ' out' : ''}${d === today ? ' is-today' : ''}" data-goto="${d}"${d === S.anchor ? ' aria-current="date"' : ''} aria-label="${fmtShort(d)}: ${b.open.length} open, ${b.done.length} done"><span class="num">${parseKey(d).getDate()}</span><span class="dots">${dots}</span>${b.done.length ? `<span class="dn">${ICON.checkSm}${b.done.length}</span>` : ''}</button>`;
   }
   const inMonth = k => k >= first && k <= last;
-  const doneM = all().filter(t => t.done && inMonth(doneKey(t)));
+  const doneM = all().filter(t => completed(t) && inMonth(doneKey(t)));
   const addedM = all().filter(t => inMonth(createdKey(t))).length;
   const openM = all().filter(t => !t.done && inMonth(t.day)).length;
   const c = [0, 0, 0, 0, 0, 0]; doneM.forEach(t => c[prioOf(t)]++);
@@ -1288,6 +1317,8 @@ function doneShell() {
       ${ranges.map(([v, l]) => `<button type="button" class="fchip" data-range="${v}" aria-pressed="${f.range === v}">${l}</button>`).join('')}
       <span class="divider" aria-hidden="true"></span>
       ${[1,2,3,4,5].map(p => `<button type="button" class="fchip pc p${p}" data-prio="${p}" aria-pressed="${f.prios.has(p)}" title="${PRIO[p]}"><i></i>P${p}</button>`).join('')}
+      <span class="divider" aria-hidden="true"></span>
+      <button type="button" class="fchip" data-dropped aria-pressed="${f.dropped}" title="Show tickets you dropped instead of finished ones">Dropped</button>
     </div>
   </div>
   <div id="insights" class="insights"></div>
@@ -1303,8 +1334,17 @@ function doneFilter() {
 }
 function renderDoneResults() {
   const f = S.doneF, {cutoff, match, filtered} = doneFilter();
-  const matched = all().filter(t => t.done && t.doneAt && match(t));
+  const matched = all().filter(t => completed(t) && match(t));
   const items = matched.filter(t => !cutoff || doneKey(t) >= cutoff).sort(byDoneDesc);
+  if (f.dropped) {          // the list shows dropped tickets instead; the insights above stay about finished work
+    const dr = all().filter(t => t.dropped && !t.missed && t.doneAt && match(t) && (!cutoff || doneKey(t) >= cutoff)).sort(byDoneDesc);
+    $('#doneTitle').innerHTML = `${dr.length} <em>dropped</em>`;
+    renderInsights(items, matched, filtered);
+    $('#doneResults').innerHTML = dr.length
+      ? `<h3 class="sec-h">Dropped tickets <span class="n">${dr.length}</span><span class="hint">closed without being done · tick one to reopen it</span></h3>${list(dr, {doneTime: true})}`
+      : emptyHTML('Nothing dropped', 'Tickets you drop instead of finishing show up here. Use Drop in a ticket’s sheet, or on a ticket that has been carried for days.');
+    return;
+  }
   const groups = new Map();
   for (const t of items) { const k = doneKey(t); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(t); }
   const rangeTxt = f.range === 'all' ? 'all time' : `the last ${f.range} days`;
@@ -1320,7 +1360,7 @@ function renderDoneResults() {
 const HABIT_DAYS = 28;
 const fmtDateTime = ms => new Date(ms).toLocaleString(undefined, {weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'});
 const localStamp = ms => { const d = new Date(ms); return `${keyOf(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-const timeToDone = t => t.done && t.doneAt && t.createdAt && t.doneAt >= t.createdAt ? t.doneAt - t.createdAt : null;
+const timeToDone = t => completed(t) && t.createdAt && t.doneAt >= t.createdAt ? t.doneAt - t.createdAt : null;
 const median = a => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 function dur(ms) {
   const m = Math.max(0, Math.round(ms / 60000));
@@ -1346,8 +1386,8 @@ function heatData(match) {
   const closed = new Array(n).fill(0), diff = new Array(n + 1).fill(0);
   for (const t of S.tasks.values()) {
     if (!match(t)) continue;
-    const done = t.done && t.doneAt, end = done ? doneKey(t) : today;
-    if (done) { const i = diffDays(start, end); if (i >= 0 && i < n) closed[i]++; }
+    const done = t.done && t.doneAt, end = done ? doneKey(t) : today;      // done or dropped: off the desk from then on
+    if (completed(t)) { const i = diffDays(start, end); if (i >= 0 && i < n) closed[i]++; }
     if (!done && t.day > today) continue;                       // planned for later: not on the desk yet
     const from = t.createdAt ? keyOf(new Date(t.createdAt)) : t.day;
     const i0 = Math.max(0, diffDays(start, from)), i1 = Math.min(n - 1, diffDays(start, end));
@@ -1389,7 +1429,7 @@ addEventListener('resize', () => { if (S.view === 'done' && $('#insights') && he
 // Which due days of a recurring task were met. A completion counts for the latest due day on or before it.
 function habitDoneDue(r) {
   const s = new Set();
-  for (const t of S.tasks.values()) if (t.ruleId === r.id && t.done && t.doneAt) {
+  for (const t of S.tasks.values()) if (t.ruleId === r.id && completed(t)) {
     for (let k = doneKey(t), n = 0; n < 62 && k >= r.start; n++, k = addDays(k, -1)) if (isDue(r, k)) { s.add(k); break; }
   }
   return s;
@@ -1479,7 +1519,7 @@ function renderInsights(items, matched, filtered) {
 const toCsv = rows => '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n');
 function exportCompleted() {
   const {cutoff, match} = doneFilter();
-  const items = all().filter(t => t.done && t.doneAt && match(t) && (!cutoff || doneKey(t) >= cutoff)).sort((a, b) => a.doneAt - b.doneAt);
+  const items = all().filter(t => completed(t) && match(t) && (!cutoff || doneKey(t) >= cutoff)).sort((a, b) => a.doneAt - b.doneAt);
   const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes', 'Response target (h)', 'Responded after (h)', 'Response met', 'Resolution target (h)', 'Resolved after excl. pauses (h)', 'Resolution met', 'Paused (h)', 'Pause reasons', 'Comments']];
   const h1 = ms => (ms / 36e5).toFixed(2);
   for (const t of items) {
@@ -1494,7 +1534,7 @@ function exportCompleted() {
 }
 function exportDaily() {
   const {cutoff, match} = doneFilter(), today = todayKey();
-  const done = all().filter(t => t.done && t.doneAt && match(t));
+  const done = all().filter(t => completed(t) && match(t));
   const from = cutoff || done.map(doneKey).sort()[0] || today;
   const rules = [...S.rules.values()].sort((a, b) => a.name.localeCompare(b.name));
   const dd = rules.map(habitDoneDue);
@@ -1521,14 +1561,14 @@ function openExportMenu(btn) {
 
 /* ---------- Recurring drawer ---------- */
 const recurBox = $('#recurBox');
-function newRuleForm() { const t = todayKey(); return {id: null, name: '', freq: 'weekly', days: [isoDow(t)], dom: parseKey(t).getDate(), start: t, u: 2, i: 2}; }
+function newRuleForm() { const t = todayKey(); return {id: null, name: '', freq: 'weekly', days: [isoDow(t)], dom: parseKey(t).getDate(), start: t, u: 2, i: 2, habit: false}; }
 function renderRules() {
   const rules = [...S.rules.values()].sort((a, b) => a.paused - b.paused || prio(a.urgency, a.impact) - prio(b.urgency, b.impact) || a.name.localeCompare(b.name));
   $('#ruleCount').textContent = rules.length ? String(rules.length) : '';
   $('#ruleList').innerHTML = rules.length ? rules.map(r => {
     const p = prio(r.urgency, r.impact), nx = r.paused ? null : nextDue(r);
     const nextTxt = r.paused ? 'Paused' : nx ? (nx === todayKey() ? 'Next: today' : `Next: ${fmtShort(nx)}`) : 'No upcoming date';
-    return `<li class="rule p${p}${r.paused ? ' paused' : ''}" data-rule="${esc(r.id)}"><span class="pbadge">P${p}</span><div class="rule-main"><span class="rule-name">${esc(r.name)}</span><span class="rule-meta">${esc(freqText(r))} · ${esc(nextTxt)}</span></div><div class="rule-acts"><button type="button" class="mini" data-ract="pause">${r.paused ? 'Resume' : 'Pause'}</button><button type="button" class="mini" data-ract="edit">Edit</button><button type="button" class="mini danger" data-ract="del" aria-label="Delete ${esc(r.name)}">${ICON.trash}</button></div></li>`;
+    return `<li class="rule p${p}${r.paused ? ' paused' : ''}" data-rule="${esc(r.id)}"><span class="pbadge">P${p}</span><div class="rule-main"><span class="rule-name">${esc(r.name)}</span><span class="rule-meta">${r.habit ? 'Habit · ' : ''}${esc(freqText(r))} · ${esc(nextTxt)}</span></div><div class="rule-acts"><button type="button" class="mini" data-ract="pause">${r.paused ? 'Resume' : 'Pause'}</button><button type="button" class="mini" data-ract="edit">Edit</button><button type="button" class="mini danger" data-ract="del" aria-label="Delete ${esc(r.name)}">${ICON.trash}</button></div></li>`;
   }).join('') : `<li class="note muted">No recurring tasks yet. Set one up below: it gets added to your day whenever it’s due, with its priority already set.</li>`;
 }
 function renderRuleForm() {
@@ -1543,11 +1583,12 @@ function renderRuleForm() {
       <div class="field"><label class="fl" for="ruleStart">Starting</label><input class="inp" id="ruleStart" type="date" value="${f.start}"></div>
     </div>
     <div class="controls" id="ruleControls">${controlsHTML('rule', f.u, f.i, '')}</div>
+    <label class="tgl"><input type="checkbox" id="ruleHabit"${f.habit ? ' checked' : ''}><span><b>This is a habit</b><small>If it isn’t done by the end of its day it’s recorded as missed. It isn’t carried over and has no TRUCE clock.</small></span></label>
     <div class="form-actions">${f.id ? '<button type="button" class="btn-ghost" data-rf="cancel">Cancel</button>' : ''}<button type="submit" class="btn-primary">${f.id ? 'Save changes' : 'Add recurring task'}</button></div>`;
 }
 function readRuleForm() {
   const f = S.rf;
-  f.name = $('#ruleName').value; f.start = $('#ruleStart').value || todayKey();
+  f.name = $('#ruleName').value; f.start = $('#ruleStart').value || todayKey(); f.habit = $('#ruleHabit').checked;
   f.dom = Math.min(31, Math.max(1, Number($('#ruleDom').value) || 1));
   return f;
 }
@@ -1574,7 +1615,7 @@ $('#ruleForm').addEventListener('submit', e => {
   if (!name) { $('#ruleName').focus(); return toast('Give the recurring task a name.'); }
   if ((f.freq === 'weekly' || f.freq === 'biweekly') && !f.days.length) return toast('Pick at least one weekday.');
   const now = Date.now(), prev = f.id ? S.rules.get(f.id) : null;
-  const r = {...(prev || {}), id: f.id || newId(), name, freq: f.freq, days: f.days.slice().sort(), dom: f.dom, start: f.start, urgency: f.u, impact: f.i, paused: prev ? !!prev.paused : false, lastGen: prev ? prev.lastGen || null : null, createdAt: prev ? prev.createdAt : now, updatedAt: now};
+  const r = {...(prev || {}), id: f.id || newId(), name, freq: f.freq, days: f.days.slice().sort(), dom: f.dom, start: f.start, urgency: f.u, impact: f.i, habit: !!f.habit, paused: prev ? !!prev.paused : false, lastGen: prev ? prev.lastGen || null : null, createdAt: prev ? prev.createdAt : now, updatedAt: now};
   if (prev && prev.start !== r.start) r.lastGen = null;
   store.save('rules', r);
   if (prev) {   // keep the open copy in step with the edited name and priority
@@ -1589,7 +1630,7 @@ $('#ruleList').addEventListener('click', e => {
   const b = e.target.closest('[data-ract]'); if (!b) return;
   const id = b.closest('[data-rule]').dataset.rule, r = S.rules.get(id); if (!r) return;
   if (b.dataset.ract === 'pause') { store.save('rules', {...r, paused: !r.paused, updatedAt: Date.now()}); toast(r.paused ? `Resumed “${r.name}”` : `Paused “${r.name}”`); scheduleGen(); }
-  if (b.dataset.ract === 'edit') { S.rf = {id: r.id, name: r.name, freq: r.freq, days: (r.days || []).slice(), dom: r.dom || 1, start: r.start, u: r.urgency, i: r.impact}; renderRuleForm(); $('#ruleName').focus(); $('#ruleForm').scrollIntoView({block: 'nearest', behavior: 'smooth'}); }
+  if (b.dataset.ract === 'edit') { S.rf = {id: r.id, name: r.name, freq: r.freq, days: (r.days || []).slice(), dom: r.dom || 1, start: r.start, u: r.urgency, i: r.impact, habit: !!r.habit}; renderRuleForm(); $('#ruleName').focus(); $('#ruleForm').scrollIntoView({block: 'nearest', behavior: 'smooth'}); }
   if (b.dataset.ract === 'del') { store.remove('rules', id); toast(`Stopped repeating “${r.name}”. Existing tickets stay.`, () => store.save('rules', r)); if (S.rf && S.rf.id === id) { S.rf = newRuleForm(); renderRuleForm(); } }
 });
 recurBox.open = !!lsGet('ticketdesk.recurOpen', false);
@@ -1599,7 +1640,7 @@ $('#openRecur').addEventListener('click', () => { recurBox.open = true; recurBox
 /* ---------- render ---------- */
 const view = $('#view');
 let shownView = null;
-function changed() { S.hist = null; truceLearnCache = null; render(); renderRules(); renderGuestBadge(); if (guestDlg.open) renderGuestPanel(); if (more.open) { renderTrashPanel(); if (!$('#trucePanel').contains(document.activeElement)) renderTrucePanel(); } scheduleGen(); }
+function changed() { S.hist = null; truceLearnCache = null; render(); renderRules(); renderGuestBadge(); if (guestDlg.open) renderGuestPanel(); if (more.open) { renderTrashPanel(); if (!truceDirty) renderTrucePanel(); } scheduleGen(); }
 function render() {
   updateTabs(); updateAddingTo();
   $('#nextId').textContent = S.loaded ? `Next: ${tidN(nextSeq())}` : '';
@@ -1728,17 +1769,21 @@ function openEdit(id) {
   $('#editName').value = t.name;
   $('#editDay').value = t.day;
   $('#editNotes').value = t.notes || '';
-  $('#editDone').textContent = t.done ? 'Reopen' : 'Mark done';
-  $('#editSnooze').hidden = !!t.done;
+  $('#editDone').textContent = t.missed ? 'Mark done after all' : t.done ? 'Reopen' : 'Mark done';
+  $('#editSnooze').hidden = !!t.done; $('#editDrop').hidden = !!t.done;
   const r = t.ruleId && S.rules.get(t.ruleId), note = $('#editRuleNote');
   note.hidden = !t.ruleId;
   if (t.ruleId) note.innerHTML = `${ICON.repeat}<span>${r ? esc(freqText(r)) + '. ' : ''}Changes here apply to this ticket only. Edit the schedule under Recurring tasks.</span>`;
   const times = [];
   if (t.createdAt) times.push(`Opened ${fmtDateTime(t.createdAt)}${t.fromGuest ? (t.requestedAt ? `, requested ${fmtDateTime(t.requestedAt)}` : ' from a guest request') : t.ruleId ? ' (recurring)' : ''}`);
-  if (t.done && t.doneAt) times.push(`Done ${fmtDateTime(t.doneAt)}${timeToDone(t) != null ? ` · took ${dur(timeToDone(t))}` : ''}`);
+  if (t.missed) times.push(`Missed on ${fmtShort(doneKey(t))}`);
+  else if (t.dropped) times.push(`Dropped ${fmtDateTime(t.doneAt)}`);
+  else if (t.done && t.doneAt) times.push(`Done ${fmtDateTime(t.doneAt)}${timeToDone(t) != null ? ` · took ${dur(timeToDone(t))}` : ''}`);
   else if (t.createdAt) times.push(`Open for ${dur(Date.now() - t.createdAt)}`);
   $('#editTimes').innerHTML = times.map(x => `<span>${esc(x)}</span>`).join('');
-  S.edit.pausing = false; renderTruceBox();
+  S.edit.pausing = false;
+  touchTask(id);          // opening a ticket is its response; no button needed
+  renderTruceBox();
   $('#editControls').innerHTML = controlsHTML('edit', t.urgency, t.impact, '');
   dlg.showModal();
 }
@@ -1755,15 +1800,17 @@ function collectEdit(extra = {}) {
 editForm.addEventListener('submit', e => { e.preventDefault(); const t = collectEdit(); if (!t) return; store.save('tasks', t); dlg.close(); toast(`Saved ${tid(t)}`); });
 $('#editDone').addEventListener('click', () => {
   const cur = S.tasks.get(S.edit.id); if (!cur) return;
-  const t = collectEdit(cur.done ? {done: false, doneAt: null} : {done: true, doneAt: Date.now()}); if (!t) return;
+  if (cur.missed) { dlg.close(); return toggleDone(cur.id); }
+  const t = collectEdit(cur.done ? {done: false, dropped: false, doneAt: null} : {done: true, doneAt: Date.now()}); if (!t) return;
   if (t.done) S.fresh = {id: t.id, kind: 'done', at: Date.now()};
   const rect = $('#editDone').getBoundingClientRect();
   store.save('tasks', t); dlg.close();
   S.lastFanfare = false;
-  toast(t.done ? celebrateClose(S.tasks.get(t.id), rect) : `Reopened ${tid(t)}`, () => store.save('tasks', {...t, done: cur.done, doneAt: cur.doneAt, updatedAt: Date.now()}));
+  toast(t.done ? celebrateClose(S.tasks.get(t.id), rect) : `Reopened ${tid(t)}`, () => store.save('tasks', {...t, done: cur.done, dropped: !!cur.dropped, doneAt: cur.doneAt, updatedAt: Date.now()}));
   celebrateToast();
 });
 $('#editDelete').addEventListener('click', () => { const id = S.edit.id; dlg.close(); deleteTask(id); });
+$('#editDrop').addEventListener('click', () => { const id = S.edit.id; dlg.close(); dropTask(id); });
 // Snooze from the sheet (the only way on touch screens for tickets that aren't carried over)
 $('#editSnooze').addEventListener('click', () => {
   const id = S.edit.id; dlg.close();
@@ -1960,7 +2007,7 @@ $('#expCsv').addEventListener('click', () => {
   const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Status', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes', 'Comments']];
   for (const t of all().sort((a, b) => (a.seq || 0) - (b.seq || 0))) {
     const r = t.ruleId && S.rules.get(t.ruleId), ttd = timeToDone(t), p = prioOf(t);
-    rows.push([tid(t), t.name, `P${p} ${PRIO[p]}`, LEVEL[t.urgency], LEVEL[t.impact], t.done ? 'Done' : 'Open', t.createdAt ? localStamp(t.createdAt) : '', t.doneAt ? localStamp(t.doneAt) : '',
+    rows.push([tid(t), t.name, `P${p} ${PRIO[p]}`, LEVEL[t.urgency], LEVEL[t.impact], t.missed ? 'Missed' : t.dropped ? 'Dropped' : t.done ? 'Done' : 'Open', t.createdAt ? localStamp(t.createdAt) : '', t.doneAt ? localStamp(t.doneAt) : '',
       ttd == null ? '' : (ttd / 36e5).toFixed(1), t.day, t.carriedFrom || '', r ? `${r.name} (${freqText(r)})` : '', t.fromGuest ? 'yes' : '', t.notes || '', commentText(t)]);
   }
   saveFile(`ticket-desk-${todayKey()}.csv`, toCsv(rows), 'text/csv');
@@ -2035,7 +2082,8 @@ function acceptRequest(id) {
   const now = Date.now();
   const t = {id: 't' + newId(), seq: nextSeq(), name, urgency: e ? e.u : r.urgency, impact: e ? e.i : r.impact, day: todayKey(), done: false, doneAt: null,
     notes: r.from ? `Requested by ${r.from}` : 'Requested by a guest', fromGuest: true, requestedAt: r.submittedAt || null, createdAt: now, updatedAt: now};
-  t.truce = truceSnapshot(prioOf(t), truceStartFor(now, t.day));
+  t.truce = truceSnapshot(prioOf(t), truceStartFor(now, t.day), r.submittedAt ? {respStart: r.submittedAt} : null);
+  t.ackAt = now;            // accepting a guest's ticket is the response to it
   S.fresh = {id: t.id, kind: 'add', at: now};
   store.save('tasks', t);
   store.save('requests', {...r, status: 'added', resolvedAt: now, taskId: t.id});
@@ -2400,8 +2448,8 @@ function closeSnooze() { $('#snoozePop').hidden = true; snoozeFor = null; }
 function snoozeTask(id, day, reason) {
   const t = S.tasks.get(id); if (!t) return;
   const comment = {at: Date.now(), kind: 'snooze', to: day, text: reason};
-  store.save('tasks', {...t, day, carriedFrom: null, keptOn: null, comments: [...(t.comments || []), comment].slice(-30)});
-  toast(`Snoozed ${tid(t)} to ${fmtShort(day)}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, day: t.day, carriedFrom: t.carriedFrom || null, keptOn: t.keptOn || null, comments: t.comments || []}); });
+  store.save('tasks', {...t, day, carriedFrom: null, keptOn: null, ackAt: t.ackAt || (t.truce ? Date.now() : null), comments: [...(t.comments || []), comment].slice(-30)});
+  toast(`Snoozed ${tid(t)} to ${fmtShort(day)}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, day: t.day, carriedFrom: t.carriedFrom || null, keptOn: t.keptOn || null, ackAt: t.ackAt || null, comments: t.comments || []}); });
 }
 $('#snoozePop').addEventListener('click', e => {
   const b = e.target.closest('[data-snz]'); if (!b) return;
@@ -2479,11 +2527,13 @@ document.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse') r
 addEventListener('scroll', () => { tt.hidden = true; }, {passive: true});
 
 /* ---------- TRUCE: Time to Resolve Under Current Energy ---------- */
-// Two clocks per ticket, both from when it's opened (or the start of the day it's planned for):
-//   response   stops at "On it" (or at done, if it was never acknowledged)
-//   resolution stops at done
-// Paused time doesn't count. Targets are copied onto the ticket when it opens, so later changes
-// only affect new tickets.
+// Two clocks per ticket:
+//   response   from when the ticket arrives to your first touch of it (opening, snoozing, pausing or
+//              finishing it). For a guest's ticket: from when they sent it to when you accepted it.
+//   resolution from when it's opened (or the start of the day it's planned for) to done.
+// Paused time doesn't count, and neither does time outside your working hours if you set any.
+// Targets and working hours are copied onto the ticket when it opens, so later changes only
+// affect new tickets.
 const MIN = 6e4, HOUR = 36e5, DAY = 864e5;
 const TRUCE_DEFAULTS = {1: {resp: 15 * MIN, res: 4 * HOUR}, 2: {resp: HOUR, res: DAY}, 3: {resp: 4 * HOUR, res: 3 * DAY}, 4: {resp: DAY, res: 7 * DAY}, 5: {resp: 3 * DAY, res: 30 * DAY}};
 // The learned error factor. Each closed miss adds GAIN × the average of the last WINDOW overruns
@@ -2495,23 +2545,74 @@ const PAUSE_FOR = [[30 * MIN, '30 minutes'], [HOUR, '1 hour'], [2 * HOUR, '2 hou
 const pauseLabel = p => p.reason === 'other' ? (p.note || 'Other') : ((PAUSE_REASONS.find(r => r[0] === p.reason) || [, 'Paused'])[1] + (p.note ? `: ${p.note}` : ''));
 const startOfDayMs = k => +parseKey(k);
 const truceStartFor = (openedAt, day) => Math.max(openedAt, startOfDayMs(day));
+
+/* working hours: null = around the clock; else {d: [1..7 Mon..Sun], f: minutes from midnight, t: minutes} */
+const validHours = h => !!(h && Array.isArray(h.d) && h.d.length && h.d.every(x => x >= 1 && x <= 7) && h.f >= 0 && h.t <= 1440 && h.f < h.t);
+const truceHours = () => { const s = S.settings.get('truce'); return s && validHours(s.hours) ? s.hours : null; };
+const dowOf = d => (d.getDay() + 6) % 7 + 1;
+function workSpan(a, b, wh) {          // working milliseconds between two moments
+  if (b <= a) return 0;
+  if (!wh) return b - a;
+  let ms = 0;
+  const d = new Date(a); d.setHours(0, 0, 0, 0);
+  for (let n = 0; n < 4000 && +d < b; n++, d.setDate(d.getDate() + 1)) {
+    if (!wh.d.includes(dowOf(d))) continue;
+    const x = Math.max(a, new Date(d).setHours(0, wh.f, 0, 0)), y = Math.min(b, new Date(d).setHours(0, wh.t, 0, 0));
+    if (y > x) ms += y - x;
+  }
+  return ms;
+}
+function addWork(from, ms, wh) {       // the moment `ms` of working time after `from` has passed
+  if (!wh) return from + ms;
+  const d = new Date(from); d.setHours(0, 0, 0, 0);
+  for (let n = 0; n < 1500; n++, d.setDate(d.getDate() + 1)) {
+    if (!wh.d.includes(dowOf(d))) continue;
+    const s = Math.max(from, new Date(d).setHours(0, wh.f, 0, 0)), e = new Date(d).setHours(0, wh.t, 0, 0);
+    if (e <= s) continue;
+    if (ms <= e - s) return s + ms;
+    ms -= e - s;
+  }
+  return from + ms;
+}
+const inWork = (at, wh) => { if (!wh) return true; const d = new Date(at), m = d.getHours() * 60 + d.getMinutes(); return wh.d.includes(dowOf(d)) && m >= wh.f && m < wh.t; };
+const dayLen = wh => (wh.t - wh.f) * MIN;
+// With working hours, "1 day" means one working day and "1 week" your working days in a week.
+function workTarget(ms, wh) {
+  if (!wh || ms < DAY) return ms;
+  const days = ms / DAY, w = Math.floor(days / 7), r = days - w * 7;
+  return Math.round((w * wh.d.length + Math.min(r, wh.d.length)) * dayLen(wh));
+}
+function durW(ms, wh) {
+  if (!wh || ms < dayLen(wh)) return dur(ms);
+  const n = Math.round(ms / dayLen(wh) * 10) / 10;
+  return `${n} work day${n === 1 ? '' : 's'}`;
+}
+const hoursText = wh => { if (!wh) return 'around the clock';
+  const d = wh.d.slice().sort(), run = d.every((x, i) => !i || x === d[i - 1] + 1);
+  const days = d.length === 7 ? 'every day' : run && d.length > 2 ? `${DOW[d[0] - 1]}–${DOW[d[d.length - 1] - 1]}` : d.map(x => DOW[x - 1]).join(', ');
+  const tm = m => new Date(2024, 0, 1, 0, m).toLocaleTimeString(undefined, {hour: 'numeric', minute: '2-digit'});
+  return `${days}, ${tm(wh.f)} to ${tm(wh.t)}`; };
+
 function truceBase(p) {
   const s = S.settings.get('truce'), c = s && s.targets && s.targets[p], d = TRUCE_DEFAULTS[p];
   return {resp: c && c.resp > 0 ? c.resp : d.resp, res: c && c.res > 0 ? c.res : d.res};
 }
 const pauseEnd = p => p.endedAt || p.until;
-function pausedWithin(t, from, to) {
-  let ms = 0;
-  for (const p of t.pauses || []) { const a = Math.max(p.from, from), b = Math.min(pauseEnd(p), to); if (b > a) ms += b - a; }
-  return ms;
+function activeSpan(t, from, to, wh) {     // working time between two moments, minus pauses
+  let ms = workSpan(from, to, wh);
+  for (const p of t.pauses || []) ms -= workSpan(Math.max(p.from, from), Math.min(pauseEnd(p), to), wh);
+  return Math.max(0, ms);
 }
 const activePause = (t, now = Date.now()) => (t.pauses || []).find(p => p.from <= now && now < pauseEnd(p)) || null;
 function truceState(t, now = Date.now()) {
   const T = t.truce; if (!T) return null;
-  const clock = end => Math.max(0, end - T.start - pausedWithin(t, T.start, Math.max(end, T.start)));
-  const respEnd = t.ackAt || (t.done && t.doneAt ? t.doneAt : null), resEnd = t.done && t.doneAt ? t.doneAt : null;
-  const part = (target, end) => { const el = clock(end || now); return {target, elapsed: el, left: target - el, final: !!end, met: end ? el <= target : null, over: el - target}; };
-  return {started: now >= T.start, pause: t.done ? null : activePause(t, now), resp: part(T.resp, respEnd), res: part(T.res, resEnd), learnedResp: T.learnedResp || 0, learnedRes: T.learnedRes || 0};
+  const wh = validHours(T.wh) ? T.wh : null, comp = completed(t);
+  if (t.dropped) now = t.doneAt || now;                 // a dropped ticket's clocks stop, with no verdict
+  const respStart = T.respStart || T.start;
+  const respEnd = t.ackAt || (comp ? t.doneAt : null), resEnd = comp ? t.doneAt : null;
+  const part = (target, from, end) => { const el = activeSpan(t, from, end || now, wh); return {target, elapsed: el, left: target - el, final: !!end, met: end ? el <= target : null, over: el - target}; };
+  return {wh, started: now >= T.start, off: !inWork(now, wh), pause: t.done ? null : activePause(t, now),
+    resp: part(T.resp, respStart, respEnd), res: part(T.res, T.start, resEnd), learnedResp: T.learnedResp || 0, learnedRes: T.learnedRes || 0};
 }
 let truceLearnCache = null;
 function truceLearned() {
@@ -2520,15 +2621,16 @@ function truceLearned() {
   for (let p = 1; p <= 5; p++) L[p] = {resp: {v: 0, hist: [], n: 0, miss: 0}, res: {v: 0, hist: [], n: 0, miss: 0}};
   const ev = [];
   for (const t of S.tasks.values()) {
-    if (!t.truce) continue;
-    const ra = t.ackAt || (t.done && t.doneAt ? t.doneAt : null);
+    if (!t.truce || t.dropped) continue;
+    const ra = t.ackAt || (completed(t) ? t.doneAt : null);
     if (ra) ev.push({t, k: 'resp', at: ra});
-    if (t.done && t.doneAt) ev.push({t, k: 'res', at: t.doneAt});
+    if (completed(t)) ev.push({t, k: 'res', at: t.doneAt});
   }
   ev.sort((a, b) => a.at - b.at);
   for (const e of ev) {
-    const p = prioOf(e.t), base = truceBase(p)[e.k], X = L[p][e.k], T = e.t.truce;
-    const over = Math.max(0, e.at - T.start - pausedWithin(e.t, T.start, e.at)) - T[e.k];
+    const p = prioOf(e.t), T = e.t.truce, wh = validHours(T.wh) ? T.wh : null;
+    const base = workTarget(truceBase(p)[e.k], wh), X = L[p][e.k];
+    const over = activeSpan(e.t, e.k === 'resp' ? (T.respStart || T.start) : T.start, e.at, wh) - T[e.k];
     X.n++;
     if (over > 0) {
       X.miss++;
@@ -2538,33 +2640,30 @@ function truceLearned() {
   }
   return truceLearnCache = L;
 }
-function truceSnapshot(p, start) {
-  const b = truceBase(p), L = truceLearned()[p];
-  return {start, resp: Math.round(b.resp + L.resp.v), res: Math.round(b.res + L.res.v), learnedResp: Math.round(L.resp.v), learnedRes: Math.round(L.res.v)};
+function truceSnapshot(p, start, extra) {
+  const b = truceBase(p), L = truceLearned()[p], wh = truceHours();
+  return {start, resp: Math.round(workTarget(b.resp, wh) + L.resp.v), res: Math.round(workTarget(b.res, wh) + L.res.v),
+    learnedResp: Math.round(L.resp.v), learnedRes: Math.round(L.res.v), ...(wh ? {wh} : {}), ...(extra || {})};
 }
 const shortWhen = ms => (keyOf(new Date(ms)) === todayKey() ? fmtTime(ms) : fmtDateTime(ms));
 function truceChip(t) {
-  const st = truceState(t); if (!st) return '';
-  if (t.done) return st.res.met ? '<span class="tc ok">Within TRUCE</span>' : `<span class="tc bad">TRUCE missed by ${dur(st.res.over)}</span>`;
+  const st = truceState(t); if (!st || t.dropped) return '';
+  if (t.done) return st.res.met ? '<span class="tc ok">Within TRUCE</span>' : `<span class="tc bad">TRUCE missed by ${durW(st.res.over, st.wh)}</span>`;
   if (!st.started) return '';
   if (st.pause) return `<span class="tc paused">${ICON.pause}Paused until ${esc(shortWhen(pauseEnd(st.pause)))}</span>`;
-  const k = t.ackAt ? 'res' : 'resp', x = st[k];
-  if (x.left > 0) return `<span class="tc ${x.left < x.target * 0.25 ? 'warn' : 'ok'}">${k === 'resp' ? 'Respond' : 'Resolve'} in ${dur(x.left)}</span>`;
-  return `<span class="tc bad">${k === 'resp' ? 'Response' : 'TRUCE'} overdue ${dur(-x.left)}</span>`;
+  const k = t.ackAt ? 'res' : 'resp', x = st[k], off = st.off ? ' · off the clock' : '';
+  if (x.left > 0) return `<span class="tc ${st.off ? 'paused' : x.left < x.target * 0.25 ? 'warn' : 'ok'}">${k === 'resp' ? 'Respond' : 'Resolve'} in ${durW(x.left, st.wh)}${off}</span>`;
+  return `<span class="tc bad">${k === 'resp' ? 'Response' : 'TRUCE'} overdue ${durW(-x.left, st.wh)}</span>`;
 }
-const needsAck = t => !t.done && t.truce && !t.ackAt && Date.now() >= t.truce.start;
-function ackTask(id) {
-  const t = S.tasks.get(id); if (!t || t.done || t.ackAt) return;
-  const n = {...t, ackAt: Date.now()};
-  store.save('tasks', n);
-  const st = truceState(n);
-  toast(`On it · responded in ${dur(st.resp.elapsed)}${st.resp.met ? ' · within TRUCE' : ` · ${dur(st.resp.over)} past the response target`}`, () => { const c = S.tasks.get(id); if (c) store.save('tasks', {...c, ackAt: null}); });
-  if (dlg.open && S.edit.id === id) renderTruceBox();
+// Your first touch of a ticket is its response. No button: opening, snoozing or pausing it counts.
+function touchTask(id) {
+  const t = S.tasks.get(id); if (!t || t.done || t.ackAt || !t.truce) return;
+  store.save('tasks', {...t, ackAt: Date.now()});
 }
 function pauseTruce(id, reason, note, ms) {
   const t = S.tasks.get(id); if (!t || t.done || activePause(t)) return false;
   const now = Date.now();
-  store.save('tasks', {...t, pauses: [...(t.pauses || []), {from: now, until: now + ms, reason, note}].slice(-20)});
+  store.save('tasks', {...t, ackAt: t.ackAt || (t.truce ? now : null), pauses: [...(t.pauses || []), {from: now, until: now + ms, reason, note}].slice(-20)});
   toast(`TRUCE paused until ${shortWhen(now + ms)}. It resumes by itself.`);
   return true;
 }
@@ -2586,17 +2685,19 @@ function renderTruceBox() {
   const el = $('#editTruce'), t = S.tasks.get(S.edit.id), st = t && truceState(t);
   if (!st) { el.hidden = true; el.innerHTML = ''; return; }
   el.hidden = false;
+  const wh = st.wh;
   const line = (k, label) => {
     const x = st[k], learned = k === 'resp' ? st.learnedResp : st.learnedRes;
     let s;
-    if (x.final) s = x.met ? `<b class="ok">Met</b> in ${dur(x.elapsed)}` : `<b class="bad">Missed</b> by ${dur(x.over)}`;
+    if (t.dropped) s = 'Not counted (dropped)';
+    else if (x.final) s = x.met ? `<b class="ok">Met</b> in ${durW(x.elapsed, wh)}${k === 'resp' ? (t.truce.respStart ? ' · from the guest sending it to you accepting it' : !t.ackAt ? ' · counted when you finished it' : ' · your first touch') : ''}` : `<b class="bad">Missed</b> by ${durW(x.over, wh)}`;
     else if (!st.started) s = `Starts ${esc(fmtDateTime(t.truce.start))}`;
-    else if (st.pause) s = `Paused · ${dur(Math.max(0, x.left))} left`;
-    else s = x.left > 0 ? `${dur(x.left)} left · due ${esc(shortWhen(Date.now() + x.left))}` : `<b class="bad">Overdue</b> by ${dur(-x.left)}`;
-    return `<div class="tr-row"><span class="tr-k">${label}</span><span class="tr-t">${dur(x.target)}${learned > 0 ? `<small>incl. +${dur(learned)} learned</small>` : ''}</span><span class="tr-s">${s}</span></div>`;
+    else if (st.pause) s = `Paused · ${durW(Math.max(0, x.left), wh)} left`;
+    else s = x.left > 0 ? `${durW(x.left, wh)} left · due ${esc(shortWhen(addWork(Date.now(), x.left, wh)))}` : `<b class="bad">Overdue</b> by ${durW(-x.left, wh)}`;
+    return `<div class="tr-row"><span class="tr-k">${label}</span><span class="tr-t">${durW(x.target, wh)}${learned > 0 ? `<small>incl. +${dur(learned)} learned</small>` : ''}</span><span class="tr-s">${s}</span></div>`;
   };
   const pz = st.pause, past = (t.pauses || []).filter(p => p !== pz);
-  el.innerHTML = `<div class="tr-head"><span class="fl">TRUCE</span><small>Time to Resolve Under Current Energy</small>${needsAck(t) ? '<button type="button" class="ack" data-tr="ack">On it</button>' : ''}</div>
+  el.innerHTML = `<div class="tr-head"><span class="fl">TRUCE</span><small>Time to Resolve Under Current Energy${wh ? ` · clock runs ${esc(hoursText(wh))}` : ''}</small></div>
     ${line('resp', 'Response')}${line('res', 'Resolution')}
     ${t.done ? '' : pz
       ? `<div class="tr-pause on"><span>${ICON.pause}Paused: <b>${esc(pauseLabel(pz))}</b> · resumes ${esc(shortWhen(pauseEnd(pz)))}</span><button type="button" class="mini" data-tr="resume">Resume now</button></div>`
@@ -2606,7 +2707,6 @@ function renderTruceBox() {
 $('#editTruce').addEventListener('click', e => {
   const b = e.target.closest('[data-tr]'); if (!b) return;
   const id = S.edit.id, a = b.dataset.tr;
-  if (a === 'ack') return ackTask(id);
   if (a === 'pause') { S.edit.pausing = true; renderTruceBox(); $('#pzReason').focus(); return; }
   if (a === 'cancel') { S.edit.pausing = false; return renderTruceBox(); }
   if (a === 'resume') { resumeTruce(id); return renderTruceBox(); }
@@ -2617,7 +2717,7 @@ $('#editTruce').addEventListener('click', e => {
   }
 });
 
-/* TRUCE targets in Settings */
+/* TRUCE targets and working hours in Settings */
 function fmtDurInput(ms) {
   if (ms % DAY === 0) return ms / DAY + 'd';
   if (ms % HOUR === 0) return ms / HOUR + 'h';
@@ -2630,19 +2730,35 @@ function parseDurInput(s) {
   const n = Number(m[1]), u = (m[2] || 'h').toLowerCase()[0];
   return Math.round(n * (u === 'm' ? MIN : u === 'd' ? DAY : u === 'w' ? 7 * DAY : HOUR));
 }
+const hhmm = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+let truceDirty = false;
 function renderTrucePanel() {
-  const L = truceLearned();
+  const L = truceLearned(), wh = truceHours(), show = wh || {d: [1, 2, 3, 4, 5], f: 540, t: 1080};
   const learnedTxt = v => v >= MIN ? `<small>+${dur(v)} learned</small>` : '<small>no misses learned</small>';
-  $('#trucePanel').innerHTML = `<p class="note">Time to Resolve Under Current Energy. Each ticket gets a response target (tap <b>On it</b>) and a resolution target from its priority. Changes apply to new tickets. Missing a target adds a little time for the next ticket at that priority, and being on time takes it away again.</p>
-    <form class="tr-table" id="truceForm" autocomplete="off">
-      <span class="th">Priority</span><span class="th">Response</span><span class="th">Resolution</span>
-      ${[1, 2, 3, 4, 5].map(p => { const b = truceBase(p); return `<span class="tr-p"><span class="pbadge p${p}">P${p}</span><span>${PRIO[p]}</span></span>
-        <label><span class="sr">P${p} response target</span><input class="inp tr-in" name="resp-${p}" value="${fmtDurInput(b.resp)}" inputmode="text">${learnedTxt(L[p].resp.v)}</label>
-        <label><span class="sr">P${p} resolution target</span><input class="inp tr-in" name="res-${p}" value="${fmtDurInput(b.res)}" inputmode="text">${learnedTxt(L[p].res.v)}</label>`; }).join('')}
-      <div class="btn-row tr-actions"><button type="submit" class="btn-ghost">Save targets</button><button type="button" class="link-btn" data-truce-reset>Reset to defaults</button></div>
-    </form>
-    <p class="note muted">Use m, h, d or w, like 15m, 4h, 3d or 1w.</p>`;
+  truceDirty = false;
+  $('#trucePanel').innerHTML = `<p class="note">Time to Resolve Under Current Energy. Each ticket gets a response target and a resolution target from its priority. Response is your first touch of the ticket: opening, snoozing, pausing or finishing it. For a guest’s ticket it’s how long they waited for you to accept it. Missing a target adds a little time for the next ticket at that priority, and being on time takes it away again.</p>
+    <form class="tr-form" id="truceForm" autocomplete="off">
+      <div class="tr-table">
+        <span class="th">Priority</span><span class="th">Response</span><span class="th">Resolution</span>
+        ${[1, 2, 3, 4, 5].map(p => { const b = truceBase(p); return `<span class="tr-p"><span class="pbadge p${p}">P${p}</span><span>${PRIO[p]}</span></span>
+          <label><span class="sr">P${p} response target</span><input class="inp tr-in" name="resp-${p}" value="${fmtDurInput(b.resp)}" inputmode="text">${learnedTxt(L[p].resp.v)}</label>
+          <label><span class="sr">P${p} resolution target</span><input class="inp tr-in" name="res-${p}" value="${fmtDurInput(b.res)}" inputmode="text">${learnedTxt(L[p].res.v)}</label>`; }).join('')}
+      </div>
+      <p class="note muted">Use m, h, d or w, like 15m, 4h, 3d or 1w.</p>
+      <fieldset class="wh"><legend class="fl">Working hours</legend>
+        <label class="tgl"><input type="checkbox" id="whOn"${wh ? ' checked' : ''}><span><b>Only count my working hours</b><small>Off: TRUCE clocks run 24 hours a day, every day</small></span></label>
+        <div class="wh-set" id="whSet"${wh ? '' : ' hidden'}>
+          <div class="daypick" id="whDays" role="group" aria-label="Working days">${DOW.map((d, n) => `<button type="button" data-wd="${n + 1}" aria-pressed="${show.d.includes(n + 1)}" aria-label="${d}">${d.slice(0, 2)}</button>`).join('')}</div>
+          <div class="wh-times"><label class="sr" for="whFrom">From</label><input class="inp" type="time" id="whFrom" value="${hhmm(show.f)}"><span>to</span><label class="sr" for="whTo">To</label><input class="inp" type="time" id="whTo" value="${hhmm(show.t)}"></div>
+          <p class="note muted">Clocks stop outside these hours. A 1-day target then means one working day, and 1 week means your working days in a week.</p>
+        </div>
+      </fieldset>
+      <div class="btn-row tr-actions"><button type="submit" class="btn-ghost">Save TRUCE settings</button><button type="button" class="link-btn" data-truce-reset>Reset to defaults</button></div>
+      <p class="note muted">Changes apply to new tickets. Each ticket keeps the targets and hours it opened with.</p>
+    </form>`;
 }
+$('#trucePanel').addEventListener('input', () => { truceDirty = true; });
+$('#trucePanel').addEventListener('change', e => { if (e.target.id === 'whOn') $('#whSet').hidden = !e.target.checked; });
 $('#trucePanel').addEventListener('submit', e => {
   e.preventDefault();
   const f = e.target, targets = {};
@@ -2653,13 +2769,22 @@ $('#trucePanel').addEventListener('submit', e => {
     if (resp > res) return toast(`P${p}: the response target can’t be longer than the resolution target.`);
     targets[p] = {resp, res};
   }
-  store.save('settings', {id: 'truce', targets});
-  renderTrucePanel(); toast('TRUCE targets saved. They apply to new tickets.');
+  let hours = null;
+  if ($('#whOn').checked) {
+    const mins = v => { const m = /^(\d\d):(\d\d)$/.exec(v || ''); return m ? Number(m[1]) * 60 + Number(m[2]) : NaN; };
+    hours = {d: [...$('#whDays').querySelectorAll('[aria-pressed="true"]')].map(b => Number(b.dataset.wd)), f: mins($('#whFrom').value), t: mins($('#whTo').value)};
+    if (!hours.d.length) return toast('Pick at least one working day.');
+    if (!(hours.f < hours.t)) return toast('Working hours need a start time before the end time.');
+  }
+  store.save('settings', {...(S.settings.get('truce') || {}), id: 'truce', targets, hours});
+  renderTrucePanel(); toast(`TRUCE settings saved. New tickets run ${hours ? hoursText(hours) : 'around the clock'}.`);
 });
 $('#trucePanel').addEventListener('click', e => {
+  const wd = e.target.closest('[data-wd]');
+  if (wd) { wd.setAttribute('aria-pressed', String(wd.getAttribute('aria-pressed') !== 'true')); truceDirty = true; return; }
   if (!e.target.closest('[data-truce-reset]')) return;
-  store.save('settings', {id: 'truce', targets: {}});
-  renderTrucePanel(); toast('TRUCE targets reset to the defaults.');
+  store.save('settings', {...(S.settings.get('truce') || {}), id: 'truce', targets: {}, hours: null});
+  renderTrucePanel(); toast('TRUCE targets and working hours reset to the defaults.');
 });
 
 /* TRUCE in the Done tab */
@@ -2703,7 +2828,7 @@ const MILESTONES = new Set([1, 10, 25, 50, 66, 100, 150, 200, 250, 300, 365, 400
 const PRAISE = ['Nice work', 'Ticket closed', 'Done and dusted', 'Sorted', 'Knocked it out', 'One less', 'Good going', 'Cleared'];
 const celebrateOn = () => lsGet('td.celebrate', true) !== false;
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-const closedCount = () => { let n = 0; for (const t of S.tasks.values()) if (t.done) n++; return n; };
+const closedCount = () => { let n = 0; for (const t of S.tasks.values()) if (completed(t)) n++; return n; };
 function checkRect(id) {
   const el = view.querySelector(`[data-id="${CSS.escape(id)}"] .check`); if (!el) return null;
   const r = el.getBoundingClientRect();
@@ -2713,10 +2838,10 @@ function celebrateToast() { if (!S.lastFanfare) return; const t = $('#toast'); v
 // Called after a ticket is saved as done. Returns the toast text.
 function celebrateClose(t, rect) {
   const n = closedCount(), today = todayKey();
-  const doneToday = all().filter(x => x.done && x.doneAt && doneKey(x) === today).length;
+  const doneToday = all().filter(x => completed(x) && doneKey(x) === today).length;
   const openNow = all().filter(x => !x.done && x.day <= today).length;
   const st = truceState(t);
-  const streak = streaks(new Set(all().filter(x => x.done && x.doneAt).map(doneKey))).cur;
+  const streak = streaks(new Set(all().filter(completed).map(doneKey))).cur;
   const milestone = MILESTONES.has(n), cleared = openNow === 0 && doneToday > 0;
   const big = celebrateOn() && (milestone || cleared || Math.random() < fanfareChance(n));
   const bits = [];
@@ -2797,7 +2922,7 @@ document.querySelector('.tabs').addEventListener('click', e => { const b = e.tar
 
 view.addEventListener('click', e => {
   if (suppressClick) { e.preventDefault(); e.stopPropagation(); return; }
-  const el = e.target.closest('[data-act],[data-req-act],[data-nav],[data-goto],[data-range],[data-prio],[data-clear-filters]');
+  const el = e.target.closest('[data-act],[data-req-act],[data-nav],[data-goto],[data-range],[data-prio],[data-dropped],[data-clear-filters]');
   if (!el) return;
   const id = el.closest('[data-id]')?.dataset.id;
   if (el.dataset.reqAct) {
@@ -2809,15 +2934,15 @@ view.addEventListener('click', e => {
   if (el.dataset.act === 'toggle') return toggleDone(id);
   if (el.dataset.act === 'edit') return openEdit(id);
   if (el.dataset.act === 'del') return deleteTask(id);
-  if (el.dataset.act === 'ack') return ackTask(id);
   if (el.dataset.act === 'snooze') return !$('#snoozePop').hidden && snoozeFor === id ? closeSnooze() : openSnooze(id, el);
-  if (el.dataset.act === 'drop') return deleteTask(id);
-  if (el.dataset.act === 'keep') { const t = S.tasks.get(id); if (t) { store.save('tasks', {...t, keptOn: todayKey()}); toast(`Kept. You’ll be asked again in ${STALE_DAYS} days if it’s still open.`); } return; }
+  if (el.dataset.act === 'drop') return dropTask(id);
+  if (el.dataset.act === 'keep') { const t = S.tasks.get(id); if (t) { store.save('tasks', {...t, keptOn: todayKey(), ackAt: t.ackAt || (t.truce ? Date.now() : null)}); toast(`Kept. You’ll be asked again in ${STALE_DAYS} days if it’s still open.`); } return; }
   if (el.dataset.nav) return el.dataset.nav === 'today' ? (S.anchor = todayKey(), render()) : shift(el.dataset.nav === 'next' ? 1 : -1);
   if (el.dataset.goto) { S.anchor = el.dataset.goto; return el.dataset.gotoView ? (setView(el.dataset.gotoView), window.scrollTo({top: 0, behavior: 'smooth'})) : render(); }
   if (el.dataset.range) { S.doneF.range = el.dataset.range; view.querySelectorAll('[data-range]').forEach(b => b.setAttribute('aria-pressed', String(b === el))); return renderDoneResults(); }
   if (el.dataset.prio) { const p = Number(el.dataset.prio); S.doneF.prios.has(p) ? S.doneF.prios.delete(p) : S.doneF.prios.add(p); el.setAttribute('aria-pressed', String(S.doneF.prios.has(p))); return renderDoneResults(); }
-  if (el.hasAttribute('data-clear-filters')) { S.doneF = {q: '', range: 'all', prios: new Set()}; shownView = null; render(); }
+  if (el.hasAttribute('data-dropped')) { S.doneF.dropped = !S.doneF.dropped; el.setAttribute('aria-pressed', String(S.doneF.dropped)); return renderDoneResults(); }
+  if (el.hasAttribute('data-clear-filters')) { S.doneF = {q: '', range: 'all', prios: new Set(), dropped: false}; shownView = null; render(); }
 }, true);
 view.addEventListener('input', e => { if (e.target.id === 'reqName' && S.reqEdit) S.reqEdit.name = e.target.value; if (e.target.id === 'doneSearch') { S.doneF.q = e.target.value; renderDoneResults(); } });
 

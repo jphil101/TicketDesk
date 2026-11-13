@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { handleSync } from '../lib/sync-core.js';
 import { handleGuest } from '../lib/guest-core.js';
-import { handleNotify, handleDigest, DIGEST_UTC, localDay } from '../lib/notify-core.js';
+import { handleNotify, handleDigest, DIGEST_UTC, localDay, workSpan, pastTruce, tzOffsetMs } from '../lib/notify-core.js';
 
 const ece = createRequire(import.meta.url)('http_ece');
 const url = process.env.TEST_DATABASE_URL;
@@ -25,6 +25,24 @@ test('local day follows the time zone', () => {
   assert.equal(localDay('Asia/Kolkata', t), '2026-11-06');
   assert.equal(localDay('America/Los_Angeles', t), '2026-11-05');
   assert.equal(localDay('Not/AZone', t), '2026-11-05');
+});
+
+test('working hours: only time inside them counts', () => {
+  const H = 3600e3, wh = { d: [1, 2, 3, 4, 5], f: 540, t: 1080 };          // Mon–Fri 09:00–18:00
+  const at = (iso) => Date.parse(iso + 'Z');
+  // Fri 13 Nov 2026 17:00 → Mon 16 Nov 10:00 UTC = 1 h Friday + 1 h Monday
+  assert.equal(workSpan(at('2026-11-13T17:00:00'), at('2026-11-16T10:00:00'), wh), 2 * H);
+  assert.equal(workSpan(at('2026-11-13T17:00:00'), at('2026-11-16T10:00:00'), null), 65 * H);
+  assert.equal(workSpan(at('2026-11-14T08:00:00'), at('2026-11-15T20:00:00'), wh), 0, 'a whole weekend counts for nothing');
+  // the same moments seen from India (UTC+5:30): Fri 22:30 → Mon 15:30 local = 6.5 h of Monday
+  const ist = tzOffsetMs('Asia/Kolkata', new Date('2026-11-13T17:00:00Z'));
+  assert.equal(ist, 5.5 * H);
+  assert.equal(workSpan(at('2026-11-13T17:00:00'), at('2026-11-16T10:00:00'), wh, ist), 6.5 * H);
+  const ticket = { truce: { start: at('2026-11-13T17:00:00'), res: 4 * H, wh } };
+  assert.equal(pastTruce(ticket, at('2026-11-16T10:00:00')), false, '2 working hours used of 4');
+  assert.equal(pastTruce(ticket, at('2026-11-16T13:30:00')), true, '5.5 working hours used of 4');
+  assert.equal(pastTruce({ ...ticket, pauses: [{ from: at('2026-11-16T09:00:00'), until: at('2026-11-16T12:00:00') }] }, at('2026-11-16T13:30:00')), false, 'a 3 h pause in working time buys it back');
+  assert.equal(pastTruce({ truce: { start: at('2026-11-13T17:00:00'), res: 4 * H } }, at('2026-11-13T22:00:00')), true, 'no hours set: around the clock');
 });
 
 test('notifications', { skip }, async t => {
