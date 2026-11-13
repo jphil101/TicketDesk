@@ -150,11 +150,27 @@ npm install
 DATABASE_URL=postgres://localhost:5432/ticketdesk DB_DRIVER=pg npm run dev   # http://localhost:3000
 ```
 
-Tests (need a throwaway Postgres database):
+Server tests (need a throwaway Postgres database):
 
 ```bash
 TEST_DATABASE_URL=postgres://localhost:5432/ticketdesk_test npm test
 ```
+
+Browser tests drive the real app in Chromium across several simulated devices. The runner starts its own local servers:
+
+```bash
+npm install --no-save playwright
+```
+
+```bash
+npx playwright install chromium
+```
+
+```bash
+E2E_DATABASE_URL=postgres://localhost:5432/ticketdesk_e2e npm run e2e
+```
+
+Both run automatically on every push through GitHub Actions (`.github/workflows/tests.yml`).
 
 ## Files
 
@@ -173,7 +189,8 @@ lib/notify-core.js        web push, email (Resend), daily summary
 lib/db.js                 Neon / node-postgres adapter
 schema.sql                tables (created automatically)
 dev-server.mjs            local server that behaves like Vercel
-test/                     protocol tests against real Postgres
+test/                     server tests against real Postgres
+e2e/                      browser tests (sync, carry-over, guests, notifications, insights, TRUCE, snooze)
 extras/claude-artifact.html   the claude.ai artifact version (syncs through claude.ai instead)
 ```
 
