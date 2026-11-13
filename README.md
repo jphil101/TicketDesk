@@ -43,6 +43,8 @@ A low-friction personal ticketing app. Type what needs doing, tap **Urgency** an
 - The server never stores the key. It stores only an HMAC of it, so a database leak can't be used to sign in.
 - **Anyone with the key can read and change your tasks**, so treat it like a password. If you lose every device *and* the key, the data can't be recovered. Use **Export backup** now and then.
 - **Unlink this device** removes the local copy. Your tasks stay on the server and come back when you link again.
+- **Change sync key** (Settings) makes a new key and moves your whole desk to it. The old key stops working at once, so use it if the key may have leaked. Other devices are told the key was replaced and ask for the new one.
+- **Recently deleted** (Settings) keeps deleted tickets for 30 days, on every linked device, with *Restore* and *Delete forever*.
 
 ## Guest links
 

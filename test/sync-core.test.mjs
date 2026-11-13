@@ -3,7 +3,8 @@
 // Skipped when TEST_DATABASE_URL is not set.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { handleSync, normalizeKey, deskIdFor, MAX_CHANGES, PULL_LIMIT } from '../lib/sync-core.js';
+import { handleSync, handleRekey, normalizeKey, deskIdFor, MAX_CHANGES, PULL_LIMIT } from '../lib/sync-core.js';
+import { handleGuest } from '../lib/guest-core.js';
 
 const url = process.env.TEST_DATABASE_URL;
 const skip = !url && 'TEST_DATABASE_URL not set';
@@ -139,6 +140,27 @@ test('sync against Postgres', { skip }, async t => {
     const env = { ALLOW_NEW_DESKS: 'false' };
     assert.equal((await call('TD-99999-88888-77777-66666', {}, env)).status, 403);
     assert.equal((await call(KEY_A, {}, env)).status, 200);
+  });
+
+  await t.test('changing the sync key moves the desk and retires the old key', async () => {
+    const OLD = 'TD-AAAAA-BBBBB-CCCCC-DDDDD', NEW = 'TD-EEEEE-FFFFF-GGGGG-HHHHH';
+    await call(OLD, { changes: [task('k1', 'Keep me', 10), { kind: 'trash', id: 'k9', updatedAt: 11, body: { id: 'k9', task: { name: 'Binned' }, deletedAt: 11 } }] });
+    const before = await call(OLD, { since: 0 });
+    const link = await handleGuest({ query, auth: 'Bearer ' + OLD, body: { action: 'create', mode: 'submit', ttlMinutes: 60 } });
+    const rk = (auth, newKey, env) => handleRekey({ query, auth: 'Bearer ' + auth, body: { action: 'rekey', newKey }, env });
+    assert.equal((await rk(OLD, 'nope')).status, 400);
+    assert.equal((await rk(OLD, OLD)).status, 400);
+    assert.equal((await rk(OLD, KEY_A)).status, 409, 'cannot take over an existing desk');
+    const r = await rk(OLD, NEW, { ALLOW_NEW_DESKS: 'false' });
+    assert.equal(r.status, 200); assert.equal(r.json.items, 2);
+    const old = await call(OLD, { since: 0 });
+    assert.equal(old.status, 410); assert.equal(old.json.code, 'key_replaced');
+    assert.equal((await call(OLD, { since: 0 }, { ALLOW_NEW_DESKS: 'true' })).status, 410, 'the old key never opens a fresh desk');
+    const moved = await call(NEW, { since: 0 });
+    assert.deepEqual(moved.json.changes.map(c => c.id).sort(), ['k1', 'k9']);
+    assert.equal(moved.json.cursor, before.json.cursor, 'cursors carry over, so devices need no full re-download');
+    assert.equal((await handleGuest({ query, auth: 'Guest ' + link.json.token, body: { action: 'info' } })).status, 200, 'the guest link moves too');
+    assert.equal((await call(NEW, { changes: [task('k2', 'After', 20)] })).status, 200);
   });
 
   await t.test('the key itself is never stored', async () => {

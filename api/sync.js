@@ -1,4 +1,4 @@
-import { handleSync } from '../lib/sync-core.js';
+import { handleSync, handleRekey } from '../lib/sync-core.js';
 import { getQuery, findDatabaseUrl } from '../lib/db.js';
 
 // GET /api/sync → setup diagnostics (variable names and status only, never values).
@@ -35,7 +35,8 @@ export default async function handler(req, res) {
     return res.status(503).json({ error: e.message, code: 'not_configured' });
   }
   try {
-    const out = await handleSync({ query, auth: req.headers.authorization, body: req.body, env: process.env });
+    const args = { query, auth: req.headers.authorization, body: req.body, env: process.env };
+    const out = req.body && req.body.action === 'rekey' ? await handleRekey(args) : await handleSync(args);
     return res.status(out.status).json(out.json);
   } catch (e) {
     console.error('sync failed', e);

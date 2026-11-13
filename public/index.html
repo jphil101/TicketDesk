@@ -537,6 +537,9 @@ select.inp{appearance:auto}
 .toast.celebrate{animation:toastPop .5s cubic-bezier(.2,1.6,.4,1);background:linear-gradient(100deg,var(--ink),color-mix(in srgb,var(--good) 55%,var(--ink)))}
 @keyframes toastPop{0%{transform:translate(-50%,10px) scale(.86)}100%{transform:translate(-50%,0) scale(1)}}
 
+.trash-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.trash-list li{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+
 /* Snooze & stale */
 .snz{width:36px;height:36px;margin-left:-6px;border:0;background:none;border-radius:8px;display:grid;place-items:center;color:var(--fg-3);opacity:0;padding:0}
 .snz:hover{color:var(--fg);background:var(--surface-2)}
@@ -720,6 +723,7 @@ select.inp{appearance:auto}
     <section class="more-sec"><h3 class="sec-h">Notifications</h3><div id="notifyPanel" class="sync-panel"></div></section>
     <section class="more-sec"><h3 class="sec-h">TRUCE targets</h3><div id="trucePanel" class="sync-panel"></div></section>
     <section class="more-sec"><h3 class="sec-h">Celebrations</h3><div id="funPanel" class="sync-panel"></div></section>
+    <section class="more-sec"><h3 class="sec-h">Recently deleted</h3><div id="trashPanel" class="sync-panel"></div></section>
     <section class="more-sec">
       <h3 class="sec-h">Backup</h3>
       <div class="btn-row">
@@ -798,7 +802,7 @@ const greeting = () => { const h = new Date().getHours(); return h < 5 ? 'Workin
 
 /* ---------- state ---------- */
 const S = {
-  tasks: new Map(), rules: new Map(), requests: new Map(), settings: new Map(),
+  tasks: new Map(), rules: new Map(), requests: new Map(), settings: new Map(), trash: new Map(),
   view: 'day', anchor: todayKey(), today: todayKey(),
   loaded: false, confirmed: false,
   add: {u: 2, i: 2}, edit: {id: null, u: 2, i: 2}, gForm: {u: 2, i: 2}, openNotes: new Set(),
@@ -812,7 +816,9 @@ const FREQS = ['daily', 'weekdays', 'weekly', 'biweekly', 'monthly'];
 const validRule = r => r && typeof r.name === 'string' && r.name.trim() && [1,2,3].includes(r.urgency) && [1,2,3].includes(r.impact) && FREQS.includes(r.freq) && /^\d{4}-\d{2}-\d{2}$/.test(r.start || '');
 const validRequest = r => r && typeof r.name === 'string' && r.name.trim() && [1,2,3].includes(r.urgency) && [1,2,3].includes(r.impact);
 const validSetting = x => x && typeof x.id === 'string' && x.id.length < 40;
-const VALID = {tasks: validTask, rules: validRule, requests: validRequest, settings: validSetting};
+const validTrash = x => x && typeof x.id === 'string' && x.deletedAt > 0 && validTask(x.task);
+const VALID = {tasks: validTask, rules: validRule, requests: validRequest, settings: validSetting, trash: validTrash};
+const KINDS = Object.keys(VALID);
 
 /* ---------- recurrence ---------- */
 function isDue(r, k) {
@@ -865,6 +871,7 @@ function generate() {
   // Open tickets from before TRUCE existed start their clocks now.
   const untimed = [...S.tasks.values()].filter(t => !t.done && !t.truce);
   if (untimed.length) { const now = Date.now(); store.saveMany('tasks', untimed.map(t => ({...t, truce: truceSnapshot(prioOf(t), truceStartFor(now, t.day))}))); return; }
+  for (const x of [...S.trash.values()]) if (Date.now() - x.deletedAt > TRASH_DAYS * 864e5) store.remove('trash', x.id);
   // Reviewed guest requests are kept 30 days so guests can see the outcome, then removed.
   for (const r of [...S.requests.values()]) if (r.status && r.resolvedAt && Date.now() - r.resolvedAt > 30 * 864e5) store.remove('requests', r.id);
   for (const r of S.rules.values()) {
@@ -886,7 +893,7 @@ function generate() {
 }
 
 /* ---------- storage: this device first, then /api/sync when a sync key is set ---------- */
-const K = {tasks: 'td.tasks', rules: 'td.rules', requests: 'td.requests', settings: 'td.settings', outbox: 'td.outbox', cursor: 'td.cursor', key: 'td.key', lastOk: 'td.lastSync'};
+const K = {tasks: 'td.tasks', rules: 'td.rules', requests: 'td.requests', settings: 'td.settings', trash: 'td.trash', outbox: 'td.outbox', cursor: 'td.cursor', key: 'td.key', lastOk: 'td.lastSync'};
 const lsList = kind => { const a = lsGet(K[kind], []); return Array.isArray(a) ? a.filter(VALID[kind]) : []; };
 const KEY_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 function normalizeKey(raw) {
@@ -898,7 +905,7 @@ function normalizeKey(raw) {
   return s;
 }
 const formatKey = k => 'TD-' + k.match(/.{5}/g).join('-');
-const newKey = () => Array.from(crypto.getRandomValues(new Uint8Array(20)), x => KEY_ALPHABET[x & 31]).join('');
+const newKeyValue = () => Array.from(crypto.getRandomValues(new Uint8Array(20)), x => KEY_ALPHABET[x & 31]).join('');
 const joinLink = k => `${location.origin}${location.pathname}#join=${formatKey(k)}`;
 
 const store = {
@@ -909,6 +916,7 @@ const store = {
     S.rules = new Map(lsList('rules').map(r => [r.id, r]));
     S.requests = new Map(lsList('requests').map(r => [r.id, r]));
     S.settings = new Map(lsList('settings').map(x => [x.id, x]));
+    S.trash = new Map(lsList('trash').map(x => [x.id, x]));
     this.key = normalizeKey(lsGet(K.key, null));
     this.cursor = Number(lsGet(K.cursor, 0)) || 0;
     const ob = lsGet(K.outbox, {}); this.outbox = ob && typeof ob === 'object' && !Array.isArray(ob) ? ob : {};
@@ -985,7 +993,7 @@ const store = {
       });
       data = await res.json().catch(() => null);
     } catch { return this.fail('offline'); }
-    if (!res.ok || !data) return this.fail(res.status === 401 || res.status === 403 ? 'denied' : res.status === 503 ? 'unconfigured' : 'error', data && data.error);
+    if (!res.ok || !data) return this.fail(res.status === 401 || res.status === 403 || res.status === 410 ? 'denied' : res.status === 503 ? 'unconfigured' : 'error', data && data.error);
 
     for (const c of sent) { const k = c.kind + ':' + c.id; if (this.outbox[k] && this.outbox[k].updatedAt === c.updatedAt) delete this.outbox[k]; }
     let touched = false;
@@ -999,7 +1007,7 @@ const store = {
       if (!cur || (cur.updatedAt || 0) < r.updatedAt) { map.set(r.id, v); touched = true; }
     }
     this.cursor = data.cursor; lsSet(K.cursor, this.cursor); lsSet(K.outbox, this.outbox);
-    if (touched) { this.persist('tasks'); this.persist('rules'); this.persist('requests'); this.persist('settings'); }
+    if (touched) for (const kind of KINDS) this.persist(kind);
     this.inflight = false; this.backoff = 0; this.error = ''; this.state = 'synced';
     this.lastOk = Date.now(); lsSet(K.lastOk, this.lastOk);
     const first = !S.confirmed; S.confirmed = true;
@@ -1019,7 +1027,7 @@ const store = {
     this.key = key; lsSet(K.key, key);
     this.cursor = 0; lsSet(K.cursor, 0);
     this.outbox = {};
-    for (const kind of ['tasks', 'rules', 'requests', 'settings']) for (const o of S[kind].values()) this.outbox[kind + ':' + o.id] = {kind, id: o.id, body: o, deleted: false, updatedAt: o.updatedAt || 1};
+    for (const kind of KINDS) for (const o of S[kind].values()) this.outbox[kind + ':' + o.id] = {kind, id: o.id, body: o, deleted: false, updatedAt: o.updatedAt || 1};
     lsSet(K.outbox, this.outbox);
     S.confirmed = false; this.state = 'syncing'; this.error = ''; this.backoff = 0;
     renderSync(); this.sync();
@@ -1027,7 +1035,8 @@ const store = {
   unlink() {
     this.key = null; this.cursor = 0; this.outbox = {}; this.state = 'local'; this.error = '';
     try { for (const k of Object.values(K)) localStorage.removeItem(k); } catch {}
-    S.tasks = new Map(); S.rules = new Map(); S.requests = new Map(); S.settings = new Map(); S.confirmed = true;
+    for (const kind of KINDS) S[kind] = new Map();
+    S.confirmed = true;
     changed(); renderSync();
   },
 };
@@ -1055,7 +1064,20 @@ function toggleDone(id) {
 function deleteTask(id) {
   const t = S.tasks.get(id); if (!t) return;
   store.remove('tasks', id);
-  toast(`Deleted ${tid(t)}`, () => store.save('tasks', t));
+  store.save('trash', {id, task: t, deletedAt: Date.now()});      // kept 30 days under Settings → Recently deleted
+  toast(`Deleted ${tid(t)}`, () => restoreTask(id));
+}
+const TRASH_DAYS = 30;
+function restoreTask(id) {
+  const x = S.trash.get(id); if (!x) return;
+  store.save('tasks', x.task); store.remove('trash', id);
+}
+function renderTrashPanel() {
+  const el = $('#trashPanel'); if (!el) return;
+  const items = [...S.trash.values()].sort((a, b) => b.deletedAt - a.deletedAt);
+  el.innerHTML = items.length
+    ? `<ul class="trash-list">${items.map(x => { const left = Math.max(0, TRASH_DAYS - Math.floor((Date.now() - x.deletedAt) / 864e5)); return `<li data-trash="${esc(x.id)}"><div class="rule-main"><span class="rule-name">${esc(x.task.name)}</span><span class="rule-meta">${tid(x.task)} · deleted ${esc(agoShort(x.deletedAt))} · ${left} day${left === 1 ? '' : 's'} left</span></div><div class="rule-acts"><button type="button" class="mini" data-trash-act="restore">Restore</button><button type="button" class="mini danger" data-trash-act="purge">Delete forever</button></div></li>`; }).join('')}</ul>`
+    : `<p class="note muted">Nothing deleted in the last ${TRASH_DAYS} days. Deleted tickets wait here for ${TRASH_DAYS} days before they’re removed for good.</p>`;
 }
 
 /* ---------- toast ---------- */
@@ -1577,7 +1599,7 @@ $('#openRecur').addEventListener('click', () => { recurBox.open = true; recurBox
 /* ---------- render ---------- */
 const view = $('#view');
 let shownView = null;
-function changed() { S.hist = null; truceLearnCache = null; render(); renderRules(); renderGuestBadge(); if (guestDlg.open) renderGuestPanel(); scheduleGen(); }
+function changed() { S.hist = null; truceLearnCache = null; render(); renderRules(); renderGuestBadge(); if (guestDlg.open) renderGuestPanel(); if (more.open) { renderTrashPanel(); if (!$('#trucePanel').contains(document.activeElement)) renderTrucePanel(); } scheduleGen(); }
 function render() {
   updateTabs(); updateAddingTo();
   $('#nextId').textContent = S.loaded ? `Next: ${tidN(nextSeq())}` : '';
@@ -1755,7 +1777,7 @@ editForm.addEventListener('click', e => { const q = e.target.closest('[data-quic
 
 /* ---------- sync & backup sheet ---------- */
 const more = $('#moreDlg');
-let pendingJoin = null, joinOpen = false, unlinkArmed = false;
+let pendingJoin = null, joinOpen = false, unlinkArmed = false, rekeyArmed = false, rekeyBusy = false;
 function syncStatus() {
   const s = store.state, pend = store.pendingCount();
   if (!store.key) return {state: 'local', label: 'This device'};
@@ -1803,6 +1825,16 @@ function renderSyncPanel() {
           <div class="day-row"><input class="inp mono" id="joinKey" placeholder="TD-XXXXX-XXXXX-XXXXX-XXXXX" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false"><button type="submit" class="btn-primary">Link</button></div>
         </form>
       </section>`;
+  } else if (store.state === 'denied') {
+    // The key was replaced on another device (or the server refuses it): ask for the new one right here.
+    html = `<p class="lead"><i class="dot" data-state="error"></i><span>${statusLine()}</span></p>
+      <section class="more-sec"><h3 class="sec-h">Enter the new key</h3>
+        <form class="join-form" id="joinForm"><label class="fl" for="joinKey">Sync key</label>
+          <div class="day-row"><input class="inp mono" id="joinKey" placeholder="TD-XXXXX-XXXXX-XXXXX-XXXXX" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false"><button type="submit" class="btn-primary">Link</button></div>
+        </form>
+        <p class="note muted">Find the new key under Settings on the device where it was changed. This device then reloads your desk from sync.</p>
+        <div class="btn-row"><button type="button" class="btn-ghost" data-sync="unlink-yes">Unlink this device instead</button></div>
+      </section>`;
   } else {
     html = `<p class="lead"><i class="dot" data-state="${syncStatus().state}"></i><span>${statusLine()}</span></p>
       <section class="more-sec"><h3 class="sec-h">Your sync key</h3>
@@ -1816,15 +1848,17 @@ function renderSyncPanel() {
         </div>
         <p class="warn">Anyone with this key can see and change your tasks. Keep it like a password, and save it somewhere safe.</p>
       </section>
-      <section class="more-sec"><div class="btn-row"><button type="button" class="btn-ghost" data-sync="now">Sync now</button>${unlinkArmed
-        ? `<button type="button" class="btn-ghost danger" data-sync="unlink-yes">Unlink and clear this device</button><button type="button" class="btn-ghost" data-sync="unlink-no">Cancel</button></div><p class="note">This removes the copy on this device. Your tasks stay in sync storage and come back if you link again with the key.</p>`
-        : `<button type="button" class="btn-ghost" data-sync="unlink">Unlink this device</button></div>`}</section>`;
+      <section class="more-sec"><div class="btn-row"><button type="button" class="btn-ghost" data-sync="now">Sync now</button>${unlinkArmed || rekeyArmed ? '' : '<button type="button" class="btn-ghost" data-sync="rekey">Change sync key</button><button type="button" class="btn-ghost" data-sync="unlink">Unlink this device</button>'}</div>
+        ${unlinkArmed ? `<p class="note">This removes the copy on this device. Your tasks stay in sync storage and come back if you link again with the key.</p>
+          <div class="btn-row"><button type="button" class="btn-ghost danger" data-sync="unlink-yes">Unlink and clear this device</button><button type="button" class="btn-ghost" data-sync="unlink-no">Cancel</button></div>` : ''}
+        ${rekeyArmed ? `<p class="note">This makes a new key and moves your whole desk to it. <b>The current key stops working straight away</b>, so use this if it may have been seen by someone else. Your other devices will ask for the new key, and anything on them that hasn’t synced yet is lost.</p>
+          <div class="btn-row"><button type="button" class="btn-primary" data-sync="rekey-yes"${rekeyBusy ? ' disabled' : ''}>${rekeyBusy ? 'Changing…' : 'Change key now'}</button><button type="button" class="btn-ghost" data-sync="rekey-no">Cancel</button></div>` : ''}</section>`;
   }
   if (p.dataset.sig === html) return;
   const typed = $('#joinKey') ? $('#joinKey').value : '';
   p.innerHTML = html; p.dataset.sig = html;
   if ($('#joinKey')) $('#joinKey').value = typed;
-  if (k && !pendingJoin) drawQR($('#qr'), joinLink(k));
+  if (k && !pendingJoin && $('#qr')) drawQR($('#qr'), joinLink(k));
 }
 function drawQR(box, text, tries = 0) {
   if (!box) return;
@@ -1836,7 +1870,7 @@ function drawQR(box, text, tries = 0) {
     box.innerHTML = `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges"><path d="${d}" fill="var(--qr-fg)"/></svg>`;
   } catch { box.hidden = true; }
 }
-function openMore() { unlinkArmed = false; $('#syncPanel').dataset.sig = ''; renderSyncPanel(); renderTrucePanel(); renderFunPanel(); if (!more.open) more.showModal(); loadNotify(); }
+function openMore() { unlinkArmed = false; rekeyArmed = false; $('#syncPanel').dataset.sig = ''; renderSyncPanel(); renderTrucePanel(); renderFunPanel(); renderTrashPanel(); if (!more.open) more.showModal(); loadNotify(); }
 async function copyText(text, what) {
   try { await navigator.clipboard.writeText(text); toast(`${what} copied`); }
   catch { const el = $('#keyText'); if (el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } toast('Select the key and copy it.'); }
@@ -1850,7 +1884,7 @@ function linkTo(key, msg) {
 $('#syncPanel').addEventListener('click', e => {
   const b = e.target.closest('[data-sync]'); if (!b) return;
   const a = b.dataset.sync;
-  if (a === 'create') linkTo(newKey(), 'Sync is on. Scan the code on your other devices.');
+  if (a === 'create') linkTo(newKeyValue(), 'Sync is on. Scan the code on your other devices.');
   else if (a === 'have') { joinOpen = !joinOpen; renderSyncPanel(); if (joinOpen) $('#joinKey').focus(); }
   else if (a === 'join-yes') linkTo(pendingJoin, 'Linked. Your tasks are syncing.');
   else if (a === 'join-no') { pendingJoin = null; renderSyncPanel(); }
@@ -1858,6 +1892,9 @@ $('#syncPanel').addEventListener('click', e => {
   else if (a === 'copylink') copyText(joinLink(store.key), 'Link');
   else if (a === 'now') store.sync();
   else if (a === 'unlink') { unlinkArmed = true; renderSyncPanel(); }
+  else if (a === 'rekey') { rekeyArmed = true; renderSyncPanel(); }
+  else if (a === 'rekey-no') { rekeyArmed = false; renderSyncPanel(); }
+  else if (a === 'rekey-yes') changeKey();
   else if (a === 'unlink-no') { unlinkArmed = false; renderSyncPanel(); }
   else if (a === 'unlink-yes') { unlinkArmed = false; disablePush(true, store.key); store.unlink(); renderSyncPanel(); renderNotifyPanel(); toast('This device is unlinked.'); }
 });
@@ -1867,6 +1904,20 @@ $('#syncPanel').addEventListener('submit', e => {
   if (!k) { $('#joinKey').focus(); return toast('That isn’t a complete key. It looks like TD-XXXXX-XXXXX-XXXXX-XXXXX.'); }
   linkTo(k, 'Linked. Your tasks are syncing.');
 });
+async function changeKey() {
+  if (rekeyBusy) return;
+  if (store.state !== 'synced' || store.pendingCount()) return toast('Wait until everything shows as synced, then try again.');
+  rekeyBusy = true; renderSyncPanel();
+  const newKey = newKeyValue();
+  try {
+    await guestApi({action: 'rekey', newKey}, null, '/api/sync');
+    store.key = newKey; lsSet(K.key, newKey);
+    rekeyArmed = false;
+    toast('New key is active. Enter it on your other devices.');
+    store.sync();
+  } catch (e) { toast(e.message); }
+  rekeyBusy = false; renderSyncPanel();
+}
 function checkJoinHash() {
   const m = /^#join=([A-Za-z0-9-]+)$/.exec(location.hash);
   if (!m) return false;
@@ -1877,6 +1928,12 @@ function checkJoinHash() {
   pendingJoin = k; openMore();
   return true;
 }
+$('#trashPanel').addEventListener('click', e => {
+  const b = e.target.closest('[data-trash-act]'); if (!b) return;
+  const id = b.closest('[data-trash]').dataset.trash, x = S.trash.get(id); if (!x) return;
+  if (b.dataset.trashAct === 'restore') { restoreTask(id); toast(`Restored ${tid(x.task)}`); }
+  else { store.remove('trash', id); toast('Deleted for good', () => store.save('trash', x)); }
+});
 $('#openMore').addEventListener('click', openMore);
 $('#sync').addEventListener('click', openMore);
 $('#moreClose').addEventListener('click', () => more.close());
@@ -1908,7 +1965,7 @@ $('#expCsv').addEventListener('click', () => {
   }
   saveFile(`ticket-desk-${todayKey()}.csv`, toCsv(rows), 'text/csv');
 });
-$('#expJson').addEventListener('click', () => saveFile(`ticket-desk-backup-${todayKey()}.json`, JSON.stringify({app: 'ticket-desk', version: 1, exportedAt: new Date().toISOString(), tasks: all(), recurring: [...S.rules.values()]}, null, 2), 'application/json'));
+$('#expJson').addEventListener('click', () => saveFile(`ticket-desk-backup-${todayKey()}.json`, JSON.stringify({app: 'ticket-desk', version: 1, exportedAt: new Date().toISOString(), tasks: all(), recurring: [...S.rules.values()], settings: [...S.settings.values()]}, null, 2), 'application/json'));
 $('#impLabel').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#impFile').click(); } });
 $('#impFile').addEventListener('change', async e => {
   const file = e.target.files && e.target.files[0]; e.target.value = '';
@@ -1919,6 +1976,7 @@ $('#impFile').addEventListener('change', async e => {
     const rules = (Array.isArray(data.recurring) ? data.recurring : []).filter(r => validRule(r) && typeof r.id === 'string');
     let nt = 0, nr = 0;
     for (const r of rules) if (!S.rules.has(r.id)) { store.save('rules', r); nr++; }
+    for (const x of (Array.isArray(data.settings) ? data.settings : []).filter(validSetting)) if (!S.settings.has(x.id)) store.save('settings', x);
     for (const t of tasks) if (!S.tasks.has(t.id)) { store.save('tasks', t); nt++; }
     toast(nt + nr ? `Imported ${nt} task${nt === 1 ? '' : 's'} and ${nr} recurring` : 'Nothing new to import. Everything in that file is already here.');
   } catch { toast('That file isn’t a Ticket Desk backup.'); }
@@ -2342,7 +2400,7 @@ function closeSnooze() { $('#snoozePop').hidden = true; snoozeFor = null; }
 function snoozeTask(id, day, reason) {
   const t = S.tasks.get(id); if (!t) return;
   const comment = {at: Date.now(), kind: 'snooze', to: day, text: reason};
-  store.save('tasks', {...t, day, carriedFrom: null, keptOn: null, comments: [...(t.comments || []), comment].slice(-50)});
+  store.save('tasks', {...t, day, carriedFrom: null, keptOn: null, comments: [...(t.comments || []), comment].slice(-30)});
   toast(`Snoozed ${tid(t)} to ${fmtShort(day)}`, () => { const cur = S.tasks.get(id); if (cur) store.save('tasks', {...cur, day: t.day, carriedFrom: t.carriedFrom || null, keptOn: t.keptOn || null, comments: t.comments || []}); });
 }
 $('#snoozePop').addEventListener('click', e => {

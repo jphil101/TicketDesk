@@ -9,7 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url)), root = path.dirname(here);
-const SUITES = ['sync', 'carry', 'guests', 'batch', 'insights', 'truce', 'snooze'];
+const SUITES = ['sync', 'carry', 'guests', 'batch', 'insights', 'truce', 'snooze', 'safety'];
 const want = process.argv.slice(2).filter(a => !a.startsWith('-'));
 const suites = want.length ? want : SUITES;
 const db = process.env.E2E_DATABASE_URL;
