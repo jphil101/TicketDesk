@@ -62,6 +62,9 @@ const step = s => console.log('✓', s);
   assert.equal(await A.$('.inbox-sec'), null); assert.equal(await A.isVisible('#reqBadge'), false);
   await A.click('.task:has-text("Printer jammed") .task-main'); await A.waitForTimeout(200);
   assert.equal(await A.inputValue('#editNotes'), 'Requested by Sam'); await A.keyboard.press('Escape');
+  const acc = await A.evaluate(() => JSON.parse(localStorage.getItem('td.tasks')).find(t => t.name === 'Printer jammed on floor 2'));
+  assert.ok(acc.ackAt && acc.truce.respStart && acc.truce.respStart <= acc.ackAt, 'response = guest sent → owner accepted');
+  assert.match(await A.evaluate(() => document.querySelector('#editTruce').textContent), /from the guest sending it to you accepting it/);
   step('owner accepts one (P1 kept, “Requested by Sam”), declines one with working undo; badge clears');
 
   // Owner's other device

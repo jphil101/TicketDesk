@@ -19,16 +19,17 @@ const dk = (n = 0) => { const d = new Date(); d.setDate(d.getDate() + n); return
   await A.fill('#taskName', 'Server down'); await A.click('label[for="add-u-3"]'); await A.click('label[for="add-i-3"]'); await A.click('#addBtn'); await A.waitForTimeout(200);
   let t = await stored(A, 'Server down');
   assert.equal(t.truce.resp, 15 * MIN); assert.equal(t.truce.res, 4 * HOUR);
-  assert.ok(await A.isVisible('#view .task:has-text("Server down") .ack'));
+  assert.equal(await A.$('#view .ack'), null);
   assert.equal(await chip(A, 'Server down'), 'Respond in 15 min');
-  step('new P1 ticket gets TRUCE 15 min response / 4 h resolution and an “On it” button');
+  step('new P1 ticket gets TRUCE 15 min response / 4 h resolution, with no “On it” button');
 
   await A.clock.runFor(5 * MIN); await A.waitForTimeout(100);
   assert.equal(await chip(A, 'Server down'), 'Respond in 10 min');
-  await A.click('#view .task:has-text("Server down") .ack'); await A.waitForTimeout(150);
-  assert.match(await A.textContent('#toast'), /On it · responded in 5 min · within TRUCE/);
+  await A.click('#view .task:has-text("Server down") .task-main'); await A.waitForTimeout(150);
+  assert.match(await A.textContent('#editTruce'), /Response.*Met in 5 min · your first touch/s);
+  await A.keyboard.press('Escape'); await A.waitForTimeout(100);
   assert.equal(await chip(A, 'Server down'), 'Resolve in 3 h 55 min');
-  step('countdown ticks; “On it” records response (5 min, within TRUCE)');
+  step('countdown ticks; opening the ticket is the response (5 min, within TRUCE)');
 
   await A.click('#view .task:has-text("Server down") .task-main'); await A.waitForTimeout(150);
   assert.match(await A.textContent('#editTruce'), /Response.*Met in 5 min/s);
@@ -145,7 +146,7 @@ const dk = (n = 0) => { const d = new Date(); d.setDate(d.getDate() + n); return
   await S2.fill('#taskName', 'Phone ticket with a long name to check the row'); await S2.click('label[for="add-u-3"]'); await S2.click('#addBtn'); await S2.waitForTimeout(300);
   assert.ok(await S2.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await S2.screenshot({path: 't-phone.png'});
-  step('ticket row with “On it” and the TRUCE chip fits a phone');
+  step('ticket row with the TRUCE chip fits a phone');
   console.log('errors:', errs.length ? errs : 'none');
   await b.close();
 })().catch(e => { console.error('FAIL', e.message); process.exit(1); });

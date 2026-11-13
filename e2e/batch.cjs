@@ -110,7 +110,8 @@ const waitFor = async (fn, ms = 4000) => { const t = Date.now(); while (Date.now
   await L.click('[data-id="s1"] [data-act="keep"]'); await L.waitForTimeout(300);
   assert.equal(await L.$('[data-id="s1"] .stale-bar'), null);
   await L.click('[data-id="s2"] [data-act="drop"]'); await L.waitForTimeout(300);
-  assert.equal(await L.$('[data-id="s2"]'), null); step('stale prompt on 5+ day carries: Keep hides it, Drop removes the ticket');
+  assert.equal(await L.$('.carried-sec [data-id="s2"]'), null); assert.equal(await L.textContent('.dropped-sec [data-id="s2"] .stamp'), 'Dropped');
+  step('stale prompt on 5+ day carries: Keep hides it, Drop closes the ticket as Dropped (kept in history)');
   await L.click('[data-id="s3"] .snz'); await L.waitForTimeout(150);
   assert.ok(await L.isVisible('#snoozePop'));
   await L.screenshot({path: 'b-snooze.png'});
