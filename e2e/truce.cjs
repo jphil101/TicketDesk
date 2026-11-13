@@ -119,12 +119,14 @@ const dk = (n = 0) => { const d = new Date(); d.setDate(d.getDate() + n); return
     await P.reload(); await P.waitForTimeout(400);
     await P.evaluate(r => { Math.random = () => r; }, rnd);
     await P.click('#view .task:has-text("Close me") .check'); await P.waitForTimeout(60);
-    const r = {fx: !!(await P.$('canvas.fx')), banner: await P.$eval('.fx-banner', e => e.textContent).catch(() => null), toast: await P.textContent('#toast'), cls: await P.getAttribute('#toast', 'class')};
+    const r = {cheers: await P.$$eval('.cheer', e => e.length), fx: !!(await P.$('canvas.fx')), banner: await P.$eval('.fx-banner', e => e.textContent).catch(() => null), toast: await P.textContent('#toast'), cls: await P.getAttribute('#toast', 'class')};
     await P.context().close(); return r;
   };
   let r = await sched(98, 0.99);  assert.ok(!r.fx && /^Done: Close me/.test(r.toast) && !/celebrate/.test(r.cls), JSON.stringify(r));
-  r = await sched(98, 0.59);  assert.ok(r.fx, '99th close at 60%: random 0.59 celebrates');
+  assert.equal(r.cheers, 0);
+  r = await sched(98, 0.59);  assert.ok(r.fx && r.cheers === 1, '99th close at 60%: random 0.59 celebrates with one character');
   r = await sched(99, 0.99);  assert.ok(r.fx && r.banner === '100th ticket!', '100th is a milestone: ' + JSON.stringify(r));
+  assert.equal(r.cheers, 3, 'milestones bring three of the squad');
   r = await sched(340, 0.19); assert.ok(r.fx, '341st at 20%: 0.19 celebrates');
   r = await sched(340, 0.21); assert.ok(!r.fx, '341st at 20%: 0.21 does not');
   step('schedule: 99th close 60% (0.99 → stamp only, 0.59 → fanfare), 100th always (milestone banner), 341st+ fixed at 20%');

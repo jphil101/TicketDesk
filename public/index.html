@@ -531,6 +531,24 @@ select.inp{appearance:auto}
 .trp-l{font:500 11.5px/1.2 var(--f-mono);color:var(--fg-3);text-align:right}
 @media (max-width:560px){.trp-row{grid-template-columns:auto 1fr 1fr}.trp-l{grid-column:2/-1;text-align:left}}
 /* celebrations */
+.cheer{position:fixed;z-index:82;width:116px;pointer-events:none;transform-origin:50% 100%;animation:cheerPop 2.5s cubic-bezier(.3,1.4,.5,1) both;filter:drop-shadow(2.5px 0 0 var(--on-solid)) drop-shadow(-2.5px 0 0 var(--on-solid)) drop-shadow(0 2.5px 0 var(--on-solid)) drop-shadow(0 -2.5px 0 var(--on-solid)) drop-shadow(0 8px 12px rgba(0,0,0,.28))}
+.cheer svg{display:block;width:100%;height:auto;overflow:visible}
+.cheer .thumb{transform-origin:96px 96px;transform-box:view-box;animation:thumbWag .5s ease-in-out .35s 3 alternate}
+.cheer-bubble{position:absolute;left:50%;top:-30px;transform:translateX(-50%);background:var(--surface);color:var(--fg);font:800 15px/1 var(--f-display);padding:7px 11px;border-radius:12px;white-space:nowrap;box-shadow:0 0 0 2px var(--ink);animation:bubblePop 2.5s ease both;animation-delay:inherit}
+.cheer.rare .cheer-bubble{background:var(--ink);color:var(--on-ink)}
+@media (max-width:600px){.cheer{width:92px}}
+.cheer.side-l .cheer-bubble{left:0;transform-origin:0 100%}
+.cheer.side-r .cheer-bubble{left:auto;right:0;transform-origin:100% 100%}
+.cheer.side-l .cheer-bubble,.cheer.side-r .cheer-bubble{animation-name:bubblePopSide}
+@keyframes bubblePopSide{0%,14%{opacity:0;transform:scale(.4)}22%{opacity:1;transform:scale(1.1)}28%,78%{opacity:1;transform:scale(1)}90%,100%{opacity:0;transform:scale(.6)}}
+@keyframes cheerPop{0%{transform:translateY(60px) scale(0) rotate(-24deg);opacity:0}12%{transform:scale(1.2) rotate(var(--rot,0deg));opacity:1}19%{transform:scale(.94) rotate(var(--rot,0deg))}26%,80%{transform:scale(1) rotate(var(--rot,0deg));opacity:1}100%{transform:translateY(50px) scale(0) rotate(14deg);opacity:0}}
+@keyframes thumbWag{from{transform:rotate(-13deg)}to{transform:rotate(9deg)}}
+@keyframes bubblePop{0%,14%{opacity:0;transform:translateX(-50%) scale(.4)}22%{opacity:1;transform:translateX(-50%) scale(1.1)}28%,78%{opacity:1;transform:translateX(-50%) scale(1)}90%,100%{opacity:0;transform:translateX(-50%) scale(.6)}}
+.squad{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;max-width:420px}
+.squad-m{display:block;padding:4px;border-radius:10px;background:var(--surface-2)}
+.squad-m svg{display:block;width:100%;height:auto}
+.squad-m.unmet{opacity:.75}
+@media (max-width:420px){.squad{grid-template-columns:repeat(4,minmax(0,1fr));max-width:240px}}
 .fx{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:80}
 .fx-banner{position:fixed;left:50%;top:36%;z-index:81;pointer-events:none;background:var(--ink);color:var(--on-ink);font:800 24px/1.1 var(--f-display);letter-spacing:-.01em;padding:16px 24px;border-radius:18px;box-shadow:var(--shadow-lg);white-space:nowrap;animation:fxBanner 1.9s cubic-bezier(.2,1.3,.4,1) forwards}
 @keyframes fxBanner{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}16%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}26%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-62%) scale(.98)}}
@@ -765,6 +783,9 @@ const LEVEL_S = ['', 'Low', 'Med', 'High'];
 const PRIO = {1:'Critical', 2:'High', 3:'Medium', 4:'Low', 5:'Planning'};
 const prio = (u, i) => 7 - (u + i);            // ITIL 3×3: H/H→P1 … L/L→P5
 const prioOf = t => prio(t.urgency, t.impact);
+// Added and ticked off within a minute: something already finished, logged for the record.
+// It counts as done, but not towards TRUCE, the learned factor or time-to-done.
+const instant = t => !!(t.done && t.doneAt && !t.dropped && t.createdAt && t.doneAt - t.createdAt < 60000);
 const completed = t => !!(t.done && t.doneAt && !t.dropped);      // finished; dropped and missed tickets are closed but don't count
 const tidN = n => 'T-' + String(n || 0).padStart(3, '0');
 const tid = t => tidN(t.seq);
@@ -1360,7 +1381,7 @@ function renderDoneResults() {
 const HABIT_DAYS = 28;
 const fmtDateTime = ms => new Date(ms).toLocaleString(undefined, {weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'});
 const localStamp = ms => { const d = new Date(ms); return `${keyOf(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-const timeToDone = t => completed(t) && t.createdAt && t.doneAt >= t.createdAt ? t.doneAt - t.createdAt : null;
+const timeToDone = t => completed(t) && !instant(t) && t.createdAt && t.doneAt >= t.createdAt ? t.doneAt - t.createdAt : null;
 const median = a => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 function dur(ms) {
   const m = Math.max(0, Math.round(ms / 60000));
@@ -1523,7 +1544,7 @@ function exportCompleted() {
   const rows = [['Ticket', 'Task', 'Priority', 'Urgency', 'Impact', 'Opened', 'Done', 'Hours to done', 'Planned day', 'Carried from', 'Repeats', 'From guest', 'Notes', 'Response target (h)', 'Responded after (h)', 'Response met', 'Resolution target (h)', 'Resolved after excl. pauses (h)', 'Resolution met', 'Paused (h)', 'Pause reasons', 'Comments']];
   const h1 = ms => (ms / 36e5).toFixed(2);
   for (const t of items) {
-    const ts = truceState(t), pz = t.pauses || [];
+    const ts = instant(t) ? null : truceState(t), pz = t.pauses || [];
     const tr = ts ? [h1(ts.resp.target), h1(ts.resp.elapsed), ts.resp.met ? 'yes' : 'no', h1(ts.res.target), h1(ts.res.elapsed), ts.res.met ? 'yes' : 'no', h1(pz.reduce((a, p) => a + Math.max(0, Math.min(pauseEnd(p), t.doneAt) - p.from), 0)), pz.map(pauseLabel).join('; ')] : ['', '', '', '', '', '', '', ''];
     const r = t.ruleId && S.rules.get(t.ruleId), ttd = timeToDone(t), p = prioOf(t);
     rows.push([tid(t), t.name, `P${p} ${PRIO[p]}`, LEVEL[t.urgency], LEVEL[t.impact], t.createdAt ? localStamp(t.createdAt) : '', localStamp(t.doneAt),
@@ -2621,7 +2642,7 @@ function truceLearned() {
   for (let p = 1; p <= 5; p++) L[p] = {resp: {v: 0, hist: [], n: 0, miss: 0}, res: {v: 0, hist: [], n: 0, miss: 0}};
   const ev = [];
   for (const t of S.tasks.values()) {
-    if (!t.truce || t.dropped) continue;
+    if (!t.truce || t.dropped || instant(t)) continue;
     const ra = t.ackAt || (completed(t) ? t.doneAt : null);
     if (ra) ev.push({t, k: 'resp', at: ra});
     if (completed(t)) ev.push({t, k: 'res', at: t.doneAt});
@@ -2648,6 +2669,7 @@ function truceSnapshot(p, start, extra) {
 const shortWhen = ms => (keyOf(new Date(ms)) === todayKey() ? fmtTime(ms) : fmtDateTime(ms));
 function truceChip(t) {
   const st = truceState(t); if (!st || t.dropped) return '';
+  if (instant(t)) return '<span class="tc paused">Logged after the fact</span>';
   if (t.done) return st.res.met ? '<span class="tc ok">Within TRUCE</span>' : `<span class="tc bad">TRUCE missed by ${durW(st.res.over, st.wh)}</span>`;
   if (!st.started) return '';
   if (st.pause) return `<span class="tc paused">${ICON.pause}Paused until ${esc(shortWhen(pauseEnd(st.pause)))}</span>`;
@@ -2690,6 +2712,7 @@ function renderTruceBox() {
     const x = st[k], learned = k === 'resp' ? st.learnedResp : st.learnedRes;
     let s;
     if (t.dropped) s = 'Not counted (dropped)';
+    else if (instant(t)) s = 'Not counted (logged after the fact)';
     else if (x.final) s = x.met ? `<b class="ok">Met</b> in ${durW(x.elapsed, wh)}${k === 'resp' ? (t.truce.respStart ? ' · from the guest sending it to you accepting it' : !t.ackAt ? ' · counted when you finished it' : ' · your first touch') : ''}` : `<b class="bad">Missed</b> by ${durW(x.over, wh)}`;
     else if (!st.started) s = `Starts ${esc(fmtDateTime(t.truce.start))}`;
     else if (st.pause) s = `Paused · ${durW(Math.max(0, x.left), wh)} left`;
@@ -2789,7 +2812,7 @@ $('#trucePanel').addEventListener('click', e => {
 
 /* TRUCE in the Done tab */
 function truceInsightsHTML(items) {
-  const withT = items.filter(t => t.truce);
+  const withT = items.filter(t => t.truce && !instant(t));
   if (!withT.length) return '<p class="note muted">TRUCE counts from tickets opened since it was turned on. Close a few and their response and resolution times show up here.</p>';
   const rate = (k, arr) => { const f = arr.map(t => truceState(t)[k]).filter(x => x.final); return {met: f.filter(x => x.met).length, n: f.length}; };
   const pct = r => r.n ? Math.round(100 * r.met / r.n) + '%' : '–';
@@ -2847,15 +2870,91 @@ function celebrateClose(t, rect) {
   const bits = [];
   if (milestone && n > 1) bits.push(`your ${ordinal(n)} ticket`);
   else if (cleared) bits.push('desk clear for today');
-  if (st && st.res.final) bits.push(st.res.met ? 'within TRUCE' : `${dur(st.res.over)} past TRUCE`);
+  if (st && st.res.final && !instant(t)) bits.push(st.res.met ? 'within TRUCE' : `${dur(st.res.over)} past TRUCE`);
   if (big && doneToday > 1) bits.push(`${doneToday} today`);
   if (big && streak > 1) bits.push(`${streak}-day streak`);
+  S.newCheers = [];
   if (big) fanfare(rect, milestone || cleared ? (milestone && n > 1 ? `${ordinal(n)} ticket!` : cleared ? 'Desk clear!' : '') : '');
+  const rare = S.newCheers.find(c => c.rare);
+  if (rare) bits.unshift(`you met ${rare.name}, a rare one`);
   S.lastFanfare = big;
   return big ? `${PRAISE[Math.floor(Math.random() * PRAISE.length)]} · ${bits.join(' · ') || t.name}` : `Done: ${t.name}${bits.length ? ' · ' + bits.join(' · ') : ''}`;
 }
+/* ---------- the cheer squad: characters that pop up with a thumbs-up ---------- */
+// Social approval is a strong reinforcer, and novelty keeps a reward from wearing off, so who turns
+// up is random. Two of the squad are rare (a bigger surprise), and Settings shows who you've met so far
+// (an unfinished collection pulls you back).
+const INK = '#161a2b';
+const CHEERS = [
+  {id: 'dot', name: 'Dot', shape: 'round', color: '#5b86e3', eyes: 'dots'},
+  {id: 'brick', name: 'Brick', shape: 'square', color: '#e8893a', eyes: 'glasses'},
+  {id: 'mochi', name: 'Mochi', shape: 'cat', color: '#a99ad6', eyes: 'happy'},
+  {id: 'bolt', name: 'Bolt', shape: 'robot', color: '#3cb894', eyes: 'dots', grin: true},
+  {id: 'pip', name: 'Pip', shape: 'round', color: '#ef6b7f', eyes: 'wink', grin: true},
+  {id: 'sage', name: 'Sage', shape: 'square', color: '#7fc35a', eyes: 'happy', cap: true},
+  {id: 'captain', name: 'Captain Thumbs', shape: 'round', color: '#f4c430', eyes: 'happy', crown: true, grin: true, rare: true},
+  {id: 'ziggy', name: 'Ziggy', shape: 'cat', color: '#ff7ac8', eyes: 'shades', rare: true},
+];
+const RARE_CHANCE = 0.06;
+const CHEER_LINES = ['Nice!', 'Boom!', 'Yes!', 'Smooth.', 'On a roll!', 'Legend.', 'That’s the one!', 'Clean.', 'Love it!'];
+function cheerSVG(c, ghost) {
+  const col = ghost ? 'var(--line-strong)' : c.color, ink = ghost ? 'var(--fg-3)' : INK;
+  const body = c.shape === 'square' || c.shape === 'robot'
+    ? 'M30 112V54a14 14 0 0 1 14-14h40a14 14 0 0 1 14 14v58a8 8 0 0 1-8 8H38a8 8 0 0 1-8-8Z'
+    : 'M30 112V70a34 34 0 0 1 68 0v42a8 8 0 0 1-8 8H38a8 8 0 0 1-8-8Z';
+  const s = `stroke="${ink}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
+  let extra = '';
+  if (c.shape === 'cat') extra += `<path d="M37 56 38 26l19 15ZM91 56 90 26 71 41Z" fill="${col}" ${s}/>`;
+  if (c.shape === 'robot') extra += `<path d="M64 40V27" fill="none" ${s}/><circle cx="64" cy="22" r="5.5" fill="${ghost ? col : '#ffd166'}" ${s}/>`;
+  let face = '';
+  if (!ghost) {
+    const eye = x => `<circle cx="${x}" cy="74" r="4.5" fill="${ink}"/>`, arc = x => `<path d="M${x - 6} 77q6-9 12 0" fill="none" ${s} stroke-width="3.5"/>`;
+    if (c.eyes === 'dots') face += eye(52) + eye(76);
+    else if (c.eyes === 'happy') face += arc(52) + arc(76);
+    else if (c.eyes === 'wink') face += eye(52) + arc(76);
+    else if (c.eyes === 'glasses') face += `<circle cx="52" cy="74" r="9" fill="#fff" ${s}/><circle cx="76" cy="74" r="9" fill="#fff" ${s}/><path d="M61 74h6" fill="none" ${s}/><circle cx="52" cy="74" r="3" fill="${ink}"/><circle cx="76" cy="74" r="3" fill="${ink}"/>`;
+    else if (c.eyes === 'shades') face += `<path d="M40 68h20v8a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8ZM68 68h20v8a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8ZM60 70h8" fill="${ink}" ${s}/>`;
+    face += c.grin ? `<path d="M53 90h22a11 11 0 0 1-22 0Z" fill="${ink}" ${s}/><path d="M59 97a5 4 0 0 1 10 0" fill="#ff8fa3"/>` : `<path d="M54 91q10 10 20 0" fill="none" ${s} stroke-width="3.5"/>`;
+    face += `<circle cx="42" cy="89" r="5" fill="#ff8fa3" opacity=".55"/><circle cx="86" cy="89" r="5" fill="#ff8fa3" opacity=".55"/>`;
+    if (c.crown) face += `<path d="M44 40 48 20l10 12 6-16 6 16 10-12 4 20Z" fill="#ffd166" ${s}/>`;
+    if (c.cap) face += `<path d="M34 46a30 22 0 0 1 60 0Z" fill="#3b6fd9" ${s}/><path d="M88 46h16" fill="none" ${s} stroke-width="5"/>`;
+  } else face = `<text x="64" y="92" text-anchor="middle" font-size="34" font-weight="700" fill="${ink}" font-family="inherit">?</text>`;
+  return `<svg viewBox="0 0 140 130" aria-hidden="true">
+    <path d="M34 100Q18 102 21 114" fill="none" stroke="${ink}" stroke-width="15" stroke-linecap="round"/><path d="M34 100Q18 102 21 114" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"/>
+    <rect x="40" y="114" width="18" height="10" rx="5" fill="${ink}"/><rect x="70" y="114" width="18" height="10" rx="5" fill="${ink}"/>
+    ${c.shape === 'cat' ? extra : ''}<path d="${body}" fill="${col}" ${s}/>${c.shape === 'cat' ? '' : extra}${face}
+    <g class="thumb"><path d="M95 96Q119 98 116 72" fill="none" stroke="${ink}" stroke-width="16" stroke-linecap="round"/><path d="M95 96Q119 98 116 72" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round"/>
+      <rect x="109" y="28" width="12" height="28" rx="6" fill="${col}" ${s}/><rect x="103" y="48" width="26" height="24" rx="9" fill="${col}" ${s}/><path d="M110 57h12M110 64h12" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round" opacity=".45"/></g>
+  </svg>`;
+}
+const metCheers = () => { const m = lsGet('td.cheers', {}); return m && typeof m === 'object' ? m : {}; };
+function pickCheer() {
+  const rare = Math.random() < RARE_CHANCE, pool = CHEERS.filter(c => !!c.rare === rare);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+// n characters pop up near the bottom corners (above the toast), give a thumbs-up, and leave.
+function cheer(n) {
+  const met = metCheers(), firstTime = [];
+  const slots = n > 1 ? ['left:5%', 'left:calc(50% - 58px)', 'right:5%'] : [Math.random() < 0.5 ? `left:${4 + Math.floor(Math.random() * 10)}%` : `right:${4 + Math.floor(Math.random() * 10)}%`];
+  const seen = new Set();
+  slots.forEach((pos, i) => {
+    let c = pickCheer(); for (let k = 0; k < 6 && seen.has(c.id); k++) c = pickCheer(); seen.add(c.id);
+    if (!met[c.id]) firstTime.push(c);
+    met[c.id] = (met[c.id] || 0) + 1;
+    const el = document.createElement('div');
+    el.className = 'cheer' + (c.rare ? ' rare' : '') + (pos.startsWith('right') ? ' side-r' : n > 1 && i === 1 ? '' : ' side-l'); el.dataset.cheer = c.id; el.setAttribute('aria-hidden', 'true');
+    el.style.cssText = `${pos};bottom:${96 + Math.floor(Math.random() * 50)}px;--rot:${Math.floor(Math.random() * 17) - 8}deg;animation-delay:${i * 0.14}s`;
+    el.innerHTML = `<div class="cheer-bubble">${esc(c.rare ? `${c.name}!` : CHEER_LINES[Math.floor(Math.random() * CHEER_LINES.length)])}</div>${cheerSVG(c)}`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2700 + i * 140);
+  });
+  lsSet('td.cheers', met);
+  return firstTime;
+}
+
 function fanfare(rect, banner) {
   try { if (navigator.vibrate) navigator.vibrate(banner ? [15, 40, 25, 40, 35] : [12, 30, 18]); } catch {}
+  S.newCheers = cheer(banner ? 3 : 1);
   if (reducedMotion()) return;
   const ox = rect ? rect.left + rect.width / 2 : innerWidth / 2, oy = rect ? rect.top + rect.height / 2 : innerHeight / 3;
   const cv = document.createElement('canvas'); cv.className = 'fx'; cv.setAttribute('aria-hidden', 'true');
@@ -2897,9 +2996,12 @@ function fanfare(rect, banner) {
   }
 }
 function renderFunPanel() {
-  const n = closedCount(), on = celebrateOn(), pct = Math.round(fanfareChance(n + 1) * 100);
-  $('#funPanel').innerHTML = `<label class="tgl"><input type="checkbox" id="funTgl"${on ? ' checked' : ''}><span><b>Celebrate closed tickets</b><small>Confetti, a buzz on phones that support it, and a word of praise</small></span></label>
-    <p class="note muted">The first ${CELEBRATE_N} closes always celebrate. After that it’s less predictable: 60%, then 50%, 40% and 30% of closes, settling at 20%. Rewards you can’t predict keep a habit going longer than ones you can. Milestones and clearing your desk always celebrate. You’ve closed ${n} ticket${n === 1 ? '' : 's'}, so the next close has a ${pct}% chance.</p>`;
+  const n = closedCount(), on = celebrateOn(), pct = Math.round(fanfareChance(n + 1) * 100), met = metCheers();
+  const metN = CHEERS.filter(c => met[c.id]).length;
+  $('#funPanel').innerHTML = `<label class="tgl"><input type="checkbox" id="funTgl"${on ? ' checked' : ''}><span><b>Celebrate closed tickets</b><small>Confetti, a character with a thumbs-up, a buzz on phones that support it, and a word of praise</small></span></label>
+    <div class="squad" role="img" aria-label="Cheer squad: ${metN} of ${CHEERS.length} met">${CHEERS.map(c => `<span class="squad-m${met[c.id] ? '' : ' unmet'}" data-tt="${met[c.id] ? `${esc(c.name)}${c.rare ? ' (rare)' : ''} · cheered ${met[c.id]}×` : c.rare ? 'A rare one you haven’t met yet' : 'Not met yet'}">${cheerSVG(c, !met[c.id])}</span>`).join('')}</div>
+    <p class="note muted">Cheer squad: ${metN} of ${CHEERS.length} met on this device. Who turns up is random, and two of them are rare.</p>
+    <p class="note muted">The first ${CELEBRATE_N} closes always celebrate. After that it’s less predictable: 60%, then 50%, 40% and 30% of closes, settling at 20%. Rewards you can’t predict keep a habit going longer than ones you can. Milestones and clearing your desk always celebrate, with three of the squad. You’ve closed ${n} ticket${n === 1 ? '' : 's'}, so the next close has a ${pct}% chance.</p>`;
 }
 $('#funPanel').addEventListener('change', e => { if (e.target.id === 'funTgl') { lsSet('td.celebrate', e.target.checked); renderFunPanel(); } });
 

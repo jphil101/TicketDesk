@@ -5,7 +5,7 @@ A low-friction personal ticketing app. Type what needs doing, tap **Urgency** an
 - **Day** (main view), **Fortnight** and **Month** breakdowns, plus a **Done** section with search, date range and priority filters
 - **Suggestions** from your past task names while you type. They are only suggestions and are never typed in for you.
 - **Carry over:** at the start of each day, unticked tasks from earlier days move to today. They appear in their own *Carried over* section showing where they came from and how many days they've been carried. Past days note what moved on.
-- **TRUCE (Time to Resolve Under Current Energy):** every ticket gets a response target (tap **On it**) and a resolution target from its priority. Countdowns show on each ticket. Missing a target adds a tiny bit of time for the next ticket at that priority. TRUCE can be paused with a reason and resumes by itself.
+- **TRUCE (Time to Resolve Under Current Energy):** every ticket gets a response target (your first touch of the ticket) and a resolution target from its priority. Countdowns show on each ticket. Missing a target adds a tiny bit of time for the next ticket at that priority. TRUCE can be paused with a reason and resumes by itself.
 - **Celebrations that taper off:** full fanfare for your first 66 closes, then 60%, 50%, 40% and 30% of closes, settling at 20%. Milestones and clearing your desk always celebrate.
 - **Insights & habit tracking (Done tab):** an activity grid ending today (26 weeks on a computer, 15 on a phone), with each day shown as no tickets / open but none closed / closed (greener for more), day streaks, and a per-habit strip for each recurring task (done / missed, streak, completion rate). Also aging open tickets and median time to done by priority. Searching narrows everything, so "gym" shows just your gym days.
 - **Opened and done times:** every ticket records the exact moment it was opened (when you press Add, or accept a guest request) and when it was done, and shows how long it took.
@@ -14,6 +14,8 @@ A low-friction personal ticketing app. Type what needs doing, tap **Urgency** an
 - **Snooze (with a reason):** move a ticket to tomorrow, in 2 days, next week, or a day you pick. A short reason is required. It's saved on the ticket and listed under it in a collapsed *Comments* section. Snooze from the alarm-clock button, or from the ticket's sheet on any device. Tickets carried 5+ days ask once: *Still relevant? Keep · Snooze · Drop*.
 - **Quick capture:** share text or a link from any Android app into Ticket Desk, or open `/?new=…` from an iOS Shortcut or Siri. Links you share are saved in the ticket's notes.
 - **Guest links:** share a QR code or link that lets someone send you tickets (*Drop-off*), or send tickets and see your open tickets read-only (*Drop-off + view*). You choose how long it works (1 hour to 1 week). You review every guest ticket before it goes on your list.
+- **Dropped:** close a ticket without doing it. It stays in your history (Day view and a *Dropped* filter in Done) and doesn't count as done or as a miss.
+- **Habits:** switch on *This is a habit* for a recurring task. If it isn't done by the end of its day it's recorded as missed, with no carry-over and no TRUCE. Ticking a missed habit later marks it done for that day.
 - **Recurring tasks** (daily, weekdays, weekly, every 2 weeks, monthly) are added to your day automatically. If last time's copy is still open it moves forward instead of piling up.
 - Edit by tapping a ticket. On touch screens, swipe right to complete and left to delete. Every action has Undo.
 - **Works offline** and installs to the home screen (iOS, Android, desktop) as a PWA
@@ -70,7 +72,7 @@ POST /api/guest
 
 *Time to Resolve Under Current Energy*: a personal SLA with two clocks per ticket. Both start when the ticket is opened, either when you press **Add ticket** or when you accept a guest's request. A ticket planned for a later day starts at the beginning of that day.
 
-| Priority | Respond (tap **On it**) | Resolve (tick it off) |
+| Priority | Respond (first touch) | Resolve (tick it off) |
 |---|---|---|
 | P1 Critical | 15 min | 4 h |
 | P2 High | 1 h | 1 day |
@@ -78,6 +80,10 @@ POST /api/guest
 | P4 Low | 1 day | 1 week |
 | P5 Planning | 3 days | 30 days |
 
+- **Response needs no button.** It's your first touch of the ticket: opening it, snoozing it, pausing it or finishing it. For a guest's ticket it's the time from when they sent it to when you accepted it.
+- **Working hours** (Settings, off by default so clocks run 24 hours): choose days and a start and end time, and TRUCE clocks only run then. A 1-day target then means one working day, and 1 week means your working days in a week. The morning summary respects them too.
+- **Logged after the fact:** a ticket ticked off within a minute of being added counts as done, but not towards TRUCE, the learned factor or time-to-done.
+- **Dropped** tickets (closed without doing them) and **habits** have no TRUCE verdict.
 - Change them in **Settings → TRUCE targets**, for example `15m`, `4h`, `2d` or `1w`. They sync across devices and apply to new tickets. Each ticket keeps the targets it opened with, and changing its priority gives it the new priority's targets.
 - **Learned error factor.** Each closed miss adds 5% of the *average* overrun across that priority's last 10 misses to future targets at that priority. Each overrun counts at most one full target, so a single wild miss barely moves the average. The extra time never exceeds 25% of the base target. Each on-time close shrinks it by 2%, so it follows your current energy back down. For example, one 10-minute miss on a P1 adds 30 seconds. The factor is recalculated from ticket history on each device, so devices can't disagree.
 - **Pausing.** Open a ticket, choose **Pause TRUCE…**, pick a reason (or *Other* with a few words) and how long, from 30 minutes to 1 week. TRUCE resumes on its own when the time is up, or you can tap **Resume now**. Paused time doesn't count, and pauses are listed on the ticket and in the export.
@@ -86,7 +92,7 @@ POST /api/guest
 
 ## Celebrations
 
-Closing a ticket always gets the DONE stamp. *Full* celebrations add confetti or sparks, a short buzz on phones that support it, and a word of praise with today's count, your streak and whether you beat TRUCE. They follow a schedule that thins out:
+Closing a ticket always gets the DONE stamp. *Full* celebrations add confetti or sparks, a short buzz on phones that support it, and a word of praise with today's count, your streak and whether you beat TRUCE. One of eight cheer-squad characters also pops up with a thumbs-up (three at milestones). Who appears is random, two are rare, and Settings shows who you've met. They follow a schedule that thins out:
 
 | Closes | Full celebration |
 |---|---|

@@ -78,6 +78,25 @@ const key = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
   assert.ok(!t.done && !t.dropped); assert.match(await D.textContent('#doneTitle'), /^0 dropped/);
   step('Drop closes a ticket without counting it as done; Done tab can list dropped tickets; ticking one reopens it');
 
+  // ---------- Logged after the fact ----------
+  const I = await page();
+  await I.goto(BASE); await I.waitForTimeout(300);
+  await add(I, 'Already did this', 3, 3); await I.click('#view .task:has-text("Already did this") .check'); await I.waitForTimeout(250);
+  assert.equal(await chip(I, 'Already did this'), 'Logged after the fact');
+  assert.doesNotMatch(await I.textContent('#toast'), /TRUCE/);
+  assert.doesNotMatch(await I.textContent('#view .task:has-text("Already did this") .task-meta'), /took/);
+  await I.evaluate(() => { const now = Date.now(), a = JSON.parse(localStorage.getItem('td.tasks'));
+    a.push({id: 'late', seq: 2, name: 'Real late one', urgency: 3, impact: 3, day: a[0].day, done: true, createdAt: now - 6 * 36e5, doneAt: now - 36e5, updatedAt: 1, truce: {start: now - 6 * 36e5, resp: 9e5, res: 4 * 36e5}});
+    localStorage.setItem('td.tasks', JSON.stringify(a)); });
+  await I.reload(); await I.waitForTimeout(500);
+  await add(I, 'Next P1', 3, 3);
+  const nx = await stored(I, 'Next P1');
+  assert.equal(nx.truce.learnedRes, 3 * MIN, 'only the real miss (1 h over) is learned: 5% of 60 min');
+  await I.click('#tab-done'); await I.waitForTimeout(300);
+  assert.match(await I.textContent('[aria-label="TRUCE"]'), /resolved within TRUCE \(0\/1\)/);
+  assert.match(await I.textContent('#doneTitle'), /^2 done/);
+  step('a ticket ticked off within a minute counts as done but not towards TRUCE, the learned factor or time-to-done');
+
   // ---------- Habits ----------
   const H = await page();
   await H.goto(BASE);
